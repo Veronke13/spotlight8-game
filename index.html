@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Teen Socialising Simulator — an interactive Everyday English practice game for 8th-grade EFL students (Spotlight 8, Lesson 1b).">
+<title>Teen Socialising Simulator — Everyday English Practice</title>
+<style>
+/* ============================================================
+   TEEN SOCIALISING SIMULATOR — self-contained styling
+   ============================================================ */
+:root{
+  --bg:#f4f7f6;
+  --card:#ffffff;
+  --ink:#1f2a37;
+  --ink-soft:#4b5a68;
+  --ink-faint:#8595a3;
+  --line:#e8e9ee;
+  --harry-bubble:#f1f4f6;
+  --accent:#6366f1;
+  --accent-2:#14b8a6;
+  --accent-grad:linear-gradient(120deg,#6366f1 0%,#7c6cf6 45%,#14b8a6 100%);
+  --green:#10b981; --green-soft:#e7f8f1; --green-line:#a7e6cd;
+  --orange:#f59e0b; --orange-soft:#fdf3e1; --orange-line:#f5d9a0;
+  --red:#ef4444; --red-soft:#fdeceb; --red-line:#f6bcba;
+  --radius-lg:26px;
+  --radius-md:16px;
+  --radius-sm:12px;
+  --shadow-card:0 24px 60px -18px rgba(31,58,95,.16),0 4px 14px rgba(31,58,95,.06);
+  --shadow-pop:0 14px 30px -12px rgba(31,58,95,.22);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.5;
+}
+/* Decorative ambient blobs (pure CSS, offline-safe) */
+body::before,body::after{
+  content:"";position:fixed;border-radius:50%;filter:blur(90px);z-index:0;pointer-events:none;
+}
+body::before{width:460px;height:460px;top:-160px;left:-140px;background:radial-gradient(circle,rgba(99,102,241,.20),transparent 65%)}
+body::after{width:520px;height:520px;bottom:-200px;right:-160px;background:radial-gradient(circle,rgba(20,184,166,.18),transparent 65%)}
+
+#app{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(14px,3.5vw,40px) clamp(12px,3vw,24px) 48px}
+
+/* ---------- Card ---------- */
+.card{
+  background:var(--card);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  overflow:hidden;
+  animation:cardIn .55s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}
+
+/* ---------- Header ---------- */
+.header{
+  padding:clamp(20px,4vw,30px) clamp(18px,4vw,30px) clamp(16px,3vw,22px);
+  background:linear-gradient(160deg,#fbfbff 0%,#f3f6f6 100%);
+  border-bottom:1px solid var(--line);
+}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:#4f46e5;background:#eef0fe;border:1px solid #dfe3fd;
+  padding:5px 11px;border-radius:999px;margin-bottom:12px;
+}
+.badge svg{width:13px;height:13px}
+.header h1{
+  font-size:clamp(23px,4.6vw,31px);
+  font-weight:800;letter-spacing:-.02em;line-height:1.15;
+  display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+}
+.header h1 .logo{
+  width:46px;height:46px;flex:0 0 auto;border-radius:14px;
+  background:var(--accent-grad);display:grid;place-items:center;color:#fff;
+  box-shadow:0 10px 22px -8px rgba(99,102,241,.55);
+}
+.header h1 .logo svg{width:24px;height:24px}
+.header h1 .grad-text{
+  background:var(--accent-grad);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.header p.subtitle{margin-top:9px;font-size:clamp(13px,2.6vw,14.5px);color:var(--ink-soft);max-width:56ch}
+.header p.subtitle strong{color:#d97706}
+
+/* ---------- Status bar ---------- */
+.status{
+  padding:16px clamp(18px,4vw,30px) 14px;
+  display:flex;flex-direction:column;gap:10px;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+.status-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.status-label{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+}
+.status-label svg{width:15px;height:15px;color:var(--red)}
+.score-wrap{display:flex;align-items:baseline;gap:8px;position:relative}
+#scoreNum{font-size:clamp(21px,4vw,26px);font-weight:800;letter-spacing:-.02em;transition:color .4s}
+#scoreNum.t-green{color:var(--green)}#scoreNum.t-orange{color:var(--orange)}#scoreNum.t-red{color:var(--red)}
+.stage-pill{
+  font-size:11.5px;font-weight:700;color:var(--ink-soft);
+  background:#f3f5f7;border:1px solid var(--line);border-radius:999px;padding:4px 11px;
+}
+.bar-track{
+  position:relative;height:14px;border-radius:999px;background:#eceef1;overflow:hidden;
+}
+.bar-fill{
+  height:100%;width:100%;border-radius:999px;
+  transition:width .7s cubic-bezier(.25,.9,.3,1.15),background .5s;
+  position:relative;
+}
+.bar-fill::after{
+  content:"";position:absolute;inset:0;border-radius:999px;
+  background:linear-gradient(rgba(255,255,255,.35),transparent 55%);
+}
+.bar-fill.t-green{background:linear-gradient(90deg,#34d399,#10b981)}
+.bar-fill.t-orange{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+.bar-fill.t-red{background:linear-gradient(90deg,#f87171,#ef4444);animation:barPulse 1.4s ease-in-out infinite}
+@keyframes barPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.14)}}
+/* floating delta indicator that pops near the bar */
+#deltaFlash{
+  position:absolute;right:0;top:-4px;font-weight:800;font-size:15px;
+  opacity:0;pointer-events:none;
+}
+#deltaFlash.show.neg{animation:floatUp 1.15s ease-out both;color:var(--red)}
+#deltaFlash.show.zero{animation:floatUp 1.15s ease-out both;color:var(--green)}
+@keyframes floatUp{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-20px) scale(1)}}
+.dots{display:flex;gap:7px;align-items:center}
+.dots .dot{width:9px;height:9px;border-radius:50%;background:#dde1e6;transition:all .4s}
+.dots .dot.active{background:var(--accent);transform:scale(1.25);box-shadow:0 0 0 4px rgba(99,102,241,.16)}
+.dots .dot.done{background:var(--accent-2)}
+.dots-caption{font-size:11px;color:var(--ink-faint);font-weight:600;margin-left:2px}
+
+/* ---------- Chat / Dialogue ---------- */
+.workspace{padding:clamp(16px,3.5vw,26px) clamp(14px,3.5vw,26px) clamp(20px,3.5vw,28px);display:block}
+.chat{
+  background:#fbfcfd;border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:16px 14px;min-height:190px;max-height:min(340px,42vh);
+  overflow-y:auto;scroll-behavior:smooth;
+  display:flex;flex-direction:column;gap:14px;
+}
+.chat::-webkit-scrollbar{width:8px}
+.chat::-webkit-scrollbar-thumb{background:#d6dbe0;border-radius:99px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.row{display:flex;gap:10px;align-items:flex-end;animation:msgIn .45s cubic-bezier(.2,.85,.3,1.2) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+.row.user{flex-direction:row-reverse}
+.avatar{
+  width:38px;height:38px;flex:0 0 38px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;
+  box-shadow:0 6px 14px -4px rgba(31,58,95,.28);
+}
+.avatar.harry{background:linear-gradient(140deg,#38bdf8,#14b8a6);position:relative}
+.avatar.harry::after{
+  content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;
+  background:#22c55e;border:2px solid #fff;
+}
+.avatar.you{background:linear-gradient(140deg,#818cf8,#6366f1)}
+.bubble-wrap{max-width:78%;display:flex;flex-direction:column;gap:3px}
+.row.user .bubble-wrap{align-items:flex-end}
+.name{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);padding:0 4px}
+.bubble{
+  padding:11px 15px;font-size:clamp(14px,2.8vw,15px);line-height:1.5;
+  border-radius:18px;word-wrap:break-word;
+}
+.row.harry .bubble{background:var(--harry-bubble);color:var(--ink);border-radius:18px 18px 18px 6px;border:1px solid #e7ebee}
+.row.user .bubble{background:var(--accent-grad);color:#fff;border-radius:18px 18px 6px 18px;box-shadow:0 8px 18px -8px rgba(99,102,241,.5)}
+/* typing indicator */
+.typing{display:inline-flex;gap:5px;align-items:center;padding:13px 16px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#9aa7b2;animation:bounceDot 1.1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounceDot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+
+/* ---------- Options ---------- */
+.options{display:flex;flex-direction:column;gap:11px;margin-top:18px}
+.option{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:#fff;border:2px solid var(--line);border-radius:var(--radius-md);
+  padding:13px 15px;cursor:pointer;font-family:var(--font);
+  font-size:clamp(14px,2.8vw,15px);color:var(--ink);line-height:1.45;
+  transition:transform .18s ease,box-shadow .25s ease,border-color .2s,background .25s,opacity .3s,filter .3s;
+  animation:optIn .4s cubic-bezier(.2,.8,.3,1.1) both;
+}
+@keyframes optIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.option:not(:disabled):hover{
+  transform:translateY(-3px);border-color:#b6bdfb;
+  box-shadow:0 12px 24px -10px rgba(99,102,241,.35);
+}
+.option:not(:disabled):active{transform:translateY(-1px) scale(.995);box-shadow:0 5px 12px -8px rgba(99,102,241,.4)}
+.option:focus-visible{outline:3px solid rgba(99,102,241,.45);outline-offset:2px}
+.option .letter{
+  width:30px;height:30px;flex:0 0 30px;border-radius:10px;display:grid;place-items:center;
+  font-weight:800;font-size:13px;color:var(--accent);background:#eef0fe;
+  transition:all .25s;
+}
+.option:disabled{cursor:default}
+.option.dimmed{opacity:.42;filter:grayscale(.6)}
+.option.sel-correct{background:var(--green-soft);border-color:var(--green);box-shadow:0 10px 22px -10px rgba(16,185,129,.45)}
+.option.sel-correct .letter{background:var(--green);color:#fff}
+.option.sel-neutral{background:var(--orange-soft);border-color:var(--orange);box-shadow:0 10px 22px -10px rgba(245,158,11,.45)}
+.option.sel-neutral .letter{background:var(--orange);color:#fff}
+.option.sel-impolite{background:var(--red-soft);border-color:var(--red);box-shadow:0 10px 22px -10px rgba(239,68,68,.45)}
+.option.sel-impolite .letter{background:var(--red);color:#fff}
+.option .tick{margin-left:auto;flex:0 0 auto;width:20px;height:20px;opacity:0;transform:scale(.5);transition:all .3s .1s}
+.option.sel-correct .tick,.option.sel-neutral .tick,.option.sel-impolite .tick{opacity:1;transform:scale(1)}
+
+/* ---------- Feedback ---------- */
+.feedback{
+  margin-top:18px;border-radius:var(--radius-md);
+  padding:16px 17px;display:none;
+  animation:fbIn .45s cubic-bezier(.2,.85,.3,1.15) both;
+}
+.feedback.show{display:block}
+@keyframes fbIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.feedback.fb-correct{background:var(--green-soft);border:1px solid var(--green-line)}
+.feedback.fb-neutral{background:var(--orange-soft);border:1px solid var(--orange-line)}
+.feedback.fb-impolite{background:var(--red-soft);border:1px solid var(--red-line)}
+.fb-head{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.fb-icon{width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.fb-icon svg{width:15px;height:15px}
+.fb-correct .fb-icon{background:var(--green)}.fb-neutral .fb-icon{background:var(--orange)}.fb-impolite .fb-icon{background:var(--red)}
+.fb-title{font-weight:800;font-size:14.5px}
+.fb-correct .fb-title{color:#047857}.fb-neutral .fb-title{color:#b45309}.fb-impolite .fb-title{color:#b91c1c}
+.fb-delta{
+  margin-left:auto;font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:999px;background:#fff;
+  border:1px solid currentColor;
+}
+.fb-correct .fb-delta{color:#059669}.fb-neutral .fb-delta{color:#d97706}.fb-impolite .fb-delta{color:#dc2626}
+.fb-text{font-size:14px;color:var(--ink-soft)}
+.fb-actions{display:flex;justify-content:flex-end;margin-top:13px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  border:none;cursor:pointer;font-family:var(--font);font-weight:800;
+  border-radius:13px;padding:12px 22px;font-size:14.5px;letter-spacing:.01em;
+  transition:transform .18s ease,box-shadow .25s ease,filter .2s;
+}
+.btn svg{width:17px;height:17px}
+.btn-primary{background:var(--accent-grad);color:#fff;box-shadow:0 10px 22px -9px rgba(99,102,241,.6)}
+.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 15px 28px -10px rgba(99,102,241,.7)}
+.btn-primary:active{transform:translateY(0);box-shadow:0 6px 14px -8px rgba(99,102,241,.6)}
+.btn:focus-visible{outline:3px solid rgba(99,102,241,.5);outline-offset:2px}
+.btn-ghost{background:#fff;color:var(--ink-soft);border:2px solid var(--line)}
+.btn-ghost:hover{transform:translateY(-2px);border-color:#c6cdd6;box-shadow:var(--shadow-pop)}
+
+/* ---------- End screens (Game Over / Success) ---------- */
+.endscreen{padding:clamp(26px,5vw,44px) clamp(18px,4vw,34px);text-align:center;animation:fbIn .5s cubic-bezier(.2,.85,.3,1.15) both}
+.hidden{display:none !important}
+.end-icon{
+  width:78px;height:78px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  animation:iconPop .6s .1s cubic-bezier(.2,1.4,.35,1) both;
+}
+.end-icon svg{width:38px;height:38px}
+@keyframes iconPop{from{opacity:0;transform:scale(.4) rotate(-14deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.end-icon.red{background:linear-gradient(140deg,#f87171,#ef4444);box-shadow:0 18px 34px -12px rgba(239,68,68,.55)}
+.end-icon.gold{background:linear-gradient(140deg,#fbbf24,#f59e0b);box-shadow:0 18px 34px -12px rgba(245,158,11,.6)}
+.endscreen h2{font-size:clamp(22px,4.6vw,28px);font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.endscreen .lead{color:var(--ink-soft);font-size:clamp(13.5px,2.8vw,15px);max-width:52ch;margin:0 auto}
+.stat-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0 4px}
+.stat{
+  background:#f7f9fa;border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:13px 20px;min-width:120px;
+}
+.stat .v{font-size:clamp(21px,4.4vw,27px);font-weight:800;letter-spacing:-.02em}
+.stat .k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-top:2px}
+.rank-chip{
+  display:inline-flex;align-items:center;gap:8px;margin-top:6px;
+  font-weight:800;font-size:14px;padding:8px 18px;border-radius:999px;
+}
+.rank-chip svg{width:16px;height:16px}
+.rank-master{background:#fef6e0;color:#b45309;border:1px solid #f2dfb0}
+.rank-good{background:#e9fbf3;color:#047857;border:1px solid #b9ecd6}
+.rank-practice{background:#eef0fe;color:#4f46e5;border:1px solid #dbe0fd}
+.info-box{
+  margin:18px auto 0;max-width:560px;text-align:left;
+  background:#fbfcfd;border:1px solid var(--line);border-radius:var(--radius-md);padding:15px 17px;
+}
+.info-box .ib-label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px}
+.info-box .ib-label svg{width:14px;height:14px}
+.info-box p{font-size:14px;color:var(--ink-soft)}
+.recap{margin:18px auto 0;max-width:560px;text-align:left;display:flex;flex-direction:column;gap:10px}
+.recap-item{
+  display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius-md);padding:12px 15px;
+}
+.recap-num{
+  width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:grid;place-items:center;
+  font-size:12px;font-weight:800;background:#eef0fe;color:var(--accent);margin-top:1px;
+}
+.recap-body{flex:1;min-width:0}
+.recap-stage{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.recap-harry{font-size:12.5px;color:var(--ink-faint);font-style:italic;margin:2px 0 4px}
+.recap-you{font-size:13.5px;color:var(--ink);font-weight:600}
+.recap-delta{flex:0 0 auto;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px}
+.recap-delta.ok{background:var(--green-soft);color:#047857}
+.recap-delta.mid{background:var(--orange-soft);color:#b45309}
+.recap-delta.bad{background:var(--red-soft);color:#b91c1c}
+.end-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.reason-box{
+  margin:18px auto 0;max-width:560px;text-align:left;
+  background:var(--red-soft);border:1px solid var(--red-line);border-radius:var(--radius-md);padding:14px 17px;
+}
+.reason-box p{font-size:14px;color:#8c2f2a}
+.reason-box .ib-label{color:#b91c1c}
+
+/* ---------- Confetti ---------- */
+#confettiLayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+.confetto{position:absolute;top:-20px;border-radius:3px;animation:confettiFall linear forwards}
+@keyframes confettiFall{
+  0%{transform:translateY(-4vh) rotate(0deg);opacity:1}
+  90%{opacity:1}
+  100%{transform:translateY(112vh) rotate(680deg);opacity:.6}
+}
+
+/* ---------- Responsive tuning ---------- */
+@media (min-width:640px){
+  .status{flex-direction:column}
+  .status-grid{display:flex;align-items:center;gap:22px}
+}
+@media (max-width:560px){
+  .bubble-wrap{max-width:86%}
+  .stat{flex:1 1 40%}
+  .end-actions .btn{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div id="confettiLayer" aria-hidden="true"></div>
+
+<main id="app">
+  <div class="card">
+
+    <!-- ================= HEADER ================= -->
+    <header class="header">
+      <span class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        Spotlight 8 &bull; Lesson 1b — Everyday English &amp; Say it right
+      </span>
+      <h1>
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        </span>
+        <span>Teen <span class="grad-text">Socialising</span> Simulator</span>
+      </h1>
+      <p class="subtitle">Master your Everyday English! Keep your politeness score <strong>above 50%</strong> to successfully make a friend.</p>
+    </header>
+
+    <!-- ================= STATUS BAR ================= -->
+    <section class="status" aria-label="Status">
+      <div class="status-top">
+        <span class="status-label">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          Politeness Score
+        </span>
+        <span class="stage-pill" id="stagePill">Stage 1 of 5</span>
+      </div>
+      <div class="status-grid" style="display:flex;align-items:center;gap:18px">
+        <div class="score-wrap">
+          <span id="scoreNum" class="t-green">100%</span>
+          <span id="deltaFlash"></span>
+        </div>
+        <div class="bar-track" style="flex:1" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="barTrack">
+          <div class="bar-fill t-green" id="barFill"></div>
+        </div>
+      </div>
+      <div class="dots" id="stageDots" aria-hidden="true"></div>
+    </section>
+
+    <!-- ================= GAME SCREEN ================= -->
+    <section class="workspace" id="gameScreen">
+      <!-- Dialogue -->
+      <div class="chat" id="chatLog" aria-live="polite" aria-label="Dialogue"></div>
+
+      <!-- Options -->
+      <div class="options" id="optionsGrid" role="group" aria-label="Answer options"></div>
+
+      <!-- Feedback / Control -->
+      <div class="feedback" id="feedbackPanel" aria-live="polite">
+        <div class="fb-head">
+          <span class="fb-icon" id="fbIcon"></span>
+          <span class="fb-title" id="fbTitle"></span>
+          <span class="fb-delta" id="fbDelta"></span>
+        </div>
+        <p class="fb-text" id="fbText"></p>
+        <div class="fb-actions">
+          <button type="button" class="btn btn-primary" id="nextBtn">
+            <span id="nextBtnLabel">Next Question</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GAME OVER SCREEN ================= -->
+    <section class="endscreen hidden" id="gameOverScreen" aria-live="assertive">
+      <div class="end-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </div>
+      <h2>Oops! The conversation ended early.</h2>
+      <p class="lead">Your politeness score fell to <strong id="goScore">0%</strong>. Harry didn't feel comfortable and politely walked away. A good friend stays friendly at every step — keep it above 50%!</p>
+      <div class="stat-row">
+        <div class="stat"><div class="v" style="color:var(--red)" id="goScoreBig">0%</div><div class="k">Final Score</div></div>
+        <div class="stat"><div class="v" id="goStage">Stage 1 / 5</div><div class="k">You Reached</div></div>
+      </div>
+      <div class="reason-box">
+        <div class="ib-label" style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          What went wrong
+        </div>
+        <p id="goFeedback"></p>
+      </div>
+      <div class="end-actions">
+        <button type="button" class="btn btn-primary" id="restartBtnGO">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          Try Again
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= SUCCESS SCREEN ================= -->
+    <section class="endscreen hidden" id="successScreen" aria-live="polite">
+      <div class="end-icon gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      </div>
+      <h2>You made a new friend!</h2>
+      <p class="lead">You successfully completed the whole conversation with Harry — from breaking the ice to arranging basketball. Well done!</p>
+      <div class="stat-row">
+        <div class="stat"><div class="v" id="finalScoreV">100%</div><div class="k">Final Score</div></div>
+        <div class="stat"><div class="v">5 / 5</div><div class="k">Stages Cleared</div></div>
+      </div>
+      <span class="rank-chip" id="rankChip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span id="rankName">Social Master</span>
+      </span>
+      <div class="info-box">
+        <div class="ib-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          Teacher's Feedback
+        </div>
+        <p id="teacherText"></p>
+      </div>
+      <div class="recap" id="recapList"></div>
+      <div class="end-actions">
+        <button type="button" class="btn btn-primary" id="restartBtnOK">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          Play Again
+        </button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   TEEN SOCIALISING SIMULATOR — game engine (vanilla JS)
+   ============================================================ */
+
+/* ---------- Dialogue Data Matrix (Spotlight 8, Lesson 1b) ---------- */
+const stages = [
+  {
+    title: "Breaking the Ice",
+    speaker: "Harry",
+    text: "Excuse me! Is this seat taken?",
+    options: [
+      { label: "No, please sit down.",                 type: "correct",  delta: 0,   feedback: "Excellent! Polite and welcoming. (From Ex. 6a)" },
+      { label: "I guess you can sit here.",            type: "neutral",  delta: -10, feedback: "A bit indifferent. It's better to be more enthusiastic when welcoming someone." },
+      { label: "Yes, it is. Go find another one.",     type: "impolite", delta: -25, feedback: "Rude! This instantly kills the conversation. Try to be polite." }
+    ]
+  },
+  {
+    title: "Introducing & Reacting",
+    speaker: "Harry",
+    text: "Thanks! By the way, I'm Harry. Nice to meet you.",
+    options: [
+      { label: "Glad to meet you.",                    type: "impolite", delta: -20, feedback: "Wrong phrase match! 'Glad to meet you' is a response to 'I'm glad you came', not to an introduction. (From Ex. 8)" },
+      { label: "Pleased to meet you, too. I'm John.",  type: "correct",  delta: 0,   feedback: "Perfect! This is the exact etiquette formula for responding to introductions. (From Ex. 6a & 8)" },
+      { label: "Hi Harry. I am John. What a nice day!",type: "neutral",  delta: -10, feedback: "Grammatically fine, but you completely ignored his 'Nice to meet you' greeting!" }
+    ]
+  },
+  {
+    title: "Keeping It Going",
+    speaker: "Harry",
+    text: "It really is a nice day! So, are you new to this neighbourhood?",
+    options: [
+      { label: "Yes. I have no privacy at home anyway.", type: "neutral",  delta: -15, feedback: "Too much information! Sharing deep family frustrations right after meeting someone makes things awkward. (From Ex. 5a)" },
+      { label: "What's it to you?",                      type: "impolite", delta: -30, feedback: "Highly aggressive tone! This sounds defensive and hostile." },
+      { label: "Yes, we've just moved in next door.",    type: "correct",  delta: 0,   feedback: "Great job! Relevant, polite, and opens up a natural topic for conversation. (From Ex. 3)" }
+    ]
+  },
+  {
+    title: "Socialising & Inviting",
+    speaker: "Harry",
+    text: "Oh, neighbours! That's great. Hey, a few of us are playing basketball later. Would you like to join?",
+    options: [
+      { label: "I'd love to! Basketball is my favourite sport.", type: "correct",  delta: 0,   feedback: "Brilliant! Positive, enthusiastic, and highly friendly. (From Ex. 4)" },
+      { label: "I'm afraid I have to go now.",                   type: "neutral",  delta: -10, feedback: "You declined the invite abruptly. While it's a valid phrase from Ex. 6a, it doesn't fit a casual invitation context well here." },
+      { label: "No, thanks, I'm fine.",                          type: "impolite", delta: -20, feedback: "Too cold. 'No, thanks, I'm fine' is used for turning down a cup of tea/help, not a social invitation! (From Ex. 6a)" }
+    ]
+  },
+  {
+    title: "Ending the Conversation",
+    speaker: "Harry",
+    text: "Awesome! I'll text you the details. See you on Monday at school then!",
+    options: [
+      { label: "Don't mention it.",                          type: "impolite", delta: -20, feedback: "Incorrect usage! 'Don't mention it' is a response to 'Thank you', not a goodbye. (From Ex. 8)" },
+      { label: "OK. I'll see you on Monday then. Take care!",type: "correct",  delta: 0,   feedback: "Spot on! A natural, warm, and appropriate way to end a friendly chat. (From Ex. 3 & 8)" },
+      { label: "Indeed it is. Bye.",                         type: "neutral",  delta: -15, feedback: "Awkward. 'Indeed it is' does not fit a parting phrase at all. (From Ex. 6a)" }
+    ]
+  }
+];
+
+/* ---------- Tiny inline SVG icon set (Lucide-style) ---------- */
+const ICONS = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>'
+};
+
+/* ---------- Global State ---------- */
+let currentStage = 0;          // index of the current dialogue stage
+let politenessScore = 100;     // starts at 100%
+let history = [];              // log of selected exchanges
+let locked = false;            // prevents double-clicking options
+let typingTimer = null;        // pending typing-indicator timeout
+
+/* ---------- Element handles ---------- */
+const $ = (id) => document.getElementById(id);
+const chatLog = $("chatLog"), optionsGrid = $("optionsGrid"), feedbackPanel = $("feedbackPanel");
+const fbIcon = $("fbIcon"), fbTitle = $("fbTitle"), fbText = $("fbText"), fbDelta = $("fbDelta");
+const nextBtn = $("nextBtn"), nextBtnLabel = $("nextBtnLabel");
+const scoreNum = $("scoreNum"), barFill = $("barFill"), barTrack = $("barTrack");
+const stagePill = $("stagePill"), stageDots = $("stageDots"), deltaFlash = $("deltaFlash");
+const gameScreen = $("gameScreen"), gameOverScreen = $("gameOverScreen"), successScreen = $("successScreen");
+const goScore = $("goScore"), goScoreBig = $("goScoreBig"), goStage = $("goStage"), goFeedback = $("goFeedback");
+const finalScoreV = $("finalScoreV"), rankChip = $("rankChip"), rankName = $("rankName");
+const teacherText = $("teacherText"), recapList = $("recapList");
+
+/* ---------- Helpers ---------- */
+const clampScore = (v) => Math.max(0, Math.min(100, v));
+const tier = (score) => score > 75 ? "green" : score > 50 ? "orange" : "red";
+const LETTERS = ["A", "B", "C"];
+const TYPE_META = {
+  correct:  { title: "Excellent choice!",  icon: ICONS.check },
+  neutral:  { title: "Hmm, a bit awkward…", icon: ICONS.alert },
+  impolite: { title: "That was rude!",      icon: ICONS.cross }
+};
+
+/* ---------- Score bar / status ---------- */
+function updateStatus() {
+  const t = tier(politenessScore);
+  scoreNum.textContent = politenessScore + "%";
+  scoreNum.className = "t-" + t;
+  barFill.style.width = politenessScore + "%";
+  barFill.className = "bar-fill t-" + t;
+  barTrack.setAttribute("aria-valuenow", politenessScore);
+}
+
+function renderDots() {
+  stageDots.innerHTML = "";
+  stages.forEach((_, i) => {
+    const d = document.createElement("span");
+    d.className = "dot" + (i < currentStage ? " done" : i === currentStage ? " active" : "");
+    stageDots.appendChild(d);
+  });
+  const cap = document.createElement("span");
+  cap.className = "dots-caption";
+  cap.textContent = stages[currentStage] ? stages[currentStage].title : "Complete!";
+  stageDots.appendChild(cap);
+}
+
+function flashDelta(delta) {
+  deltaFlash.className = "";
+  deltaFlash.textContent = (delta > 0 ? "+" : "") + delta + "%";
+  void deltaFlash.offsetWidth;               // restart the CSS animation
+  deltaFlash.classList.add("show", delta < 0 ? "neg" : "zero");
+}
+
+/* ---------- Chat bubbles ---------- */
+function scrollChat() {
+  requestAnimationFrame(() => chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: "smooth" }));
+}
+
+function appendMessage(side, text) {
+  const row = document.createElement("div");
+  row.className = "row " + side;
+  row.innerHTML =
+    '<div class="avatar ' + (side === "harry" ? "harry" : "you") + '">' + (side === "harry" ? "H" : "J") + '</div>' +
+    '<div class="bubble-wrap"><span class="name">' + (side === "harry" ? "Harry" : "You") + '</span>' +
+    '<div class="bubble"></div></div>';
+  row.querySelector(".bubble").textContent = text;
+  chatLog.appendChild(row);
+  scrollChat();
+}
+
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "row harry";
+  row.id = "typingRow";
+  row.innerHTML =
+    '<div class="avatar harry">H</div>' +
+    '<div class="bubble-wrap"><span class="name">Harry</span>' +
+    '<div class="bubble typing"><i></i><i></i><i></i></div></div>';
+  chatLog.appendChild(row);
+  scrollChat();
+}
+
+function hideTyping() {
+  const t = $("typingRow");
+  if (t) t.remove();
+}
+
+/* ---------- Stage rendering ---------- */
+function renderStage(withTyping) {
+  locked = false;
+  feedbackPanel.className = "feedback";
+  optionsGrid.innerHTML = "";
+  stagePill.textContent = "Stage " + (currentStage + 1) + " of " + stages.length;
+  renderDots();
+
+  const stage = stages[currentStage];
+
+  const materialize = () => {
+    appendMessage("harry", stage.text);
+    renderOptions(stage);
+  };
+
+  if (withTyping) {
+    showTyping();
+    typingTimer = setTimeout(() => { hideTyping(); materialize(); }, 750);
+  } else {
+    materialize();
+  }
+}
+
+function renderOptions(stage) {
+  optionsGrid.innerHTML = "";
+  stage.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "option";
+    btn.style.animationDelay = (i * 80) + "ms";
+    btn.setAttribute("aria-label", "Option " + LETTERS[i] + ": " + opt.label);
+    btn.innerHTML =
+      '<span class="letter">' + LETTERS[i] + '</span>' +
+      '<span class="opt-text"></span>' +
+      '<span class="tick">' + ICONS[opt.type === "correct" ? "check" : opt.type === "neutral" ? "alert" : "cross"] + '</span>';
+    btn.querySelector(".opt-text").textContent = opt.label;
+    btn.addEventListener("click", () => selectOption(i));
+    optionsGrid.appendChild(btn);
+  });
+}
+
+/* ---------- Choice handling ---------- */
+function selectOption(i) {
+  if (locked) return;
+  locked = true;
+
+  const stage = stages[currentStage];
+  const opt = stage.options[i];
+
+  // Visual lock-in of the buttons
+  [...optionsGrid.children].forEach((btn, j) => {
+    btn.disabled = true;
+    if (j === i) btn.classList.add("sel-" + opt.type);
+    else btn.classList.add("dimmed");
+  });
+
+  // State updates
+  politenessScore = clampScore(politenessScore + opt.delta);
+  history.push({
+    stageIndex: currentStage,
+    stageTitle: stage.title,
+    harry: stage.text,
+    reply: opt.label,
+    type: opt.type,
+    delta: opt.delta,
+    feedback: opt.feedback
+  });
+
+  updateStatus();
+  flashDelta(opt.delta);
+  appendMessage("user", opt.label);
+  showFeedback(opt);
+
+  // Game-over check — politeness at or below 50%
+  if (politenessScore <= 50) {
+    typingTimer = setTimeout(() => showGameOver(opt), 1150);
+    return;
+  }
+
+  nextBtnLabel.textContent = (currentStage === stages.length - 1) ? "See Results" : "Next Question";
+}
+
+function showFeedback(opt) {
+  const meta = TYPE_META[opt.type];
+  feedbackPanel.className = "feedback show fb-" + opt.type;
+  fbIcon.innerHTML = meta.icon;
+  fbTitle.textContent = meta.title;
+  fbText.textContent = opt.feedback;
+  fbDelta.textContent = (opt.delta > 0 ? "+" : "") + opt.delta + "%";
+  requestAnimationFrame(() => feedbackPanel.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+}
+
+/* ---------- Flow control ---------- */
+function nextStage() {
+  if (!locked) return;                       // guard: next only after a choice
+  feedbackPanel.className = "feedback";
+  currentStage++;
+  if (currentStage >= stages.length) {
+    showSuccess();
+  } else {
+    renderStage(true);
+  }
+}
+
+function showGameOver(opt) {
+  hideTyping();
+  gameScreen.classList.add("hidden");
+  successScreen.classList.add("hidden");
+  gameOverScreen.classList.remove("hidden");
+  goScore.textContent = politenessScore + "%";
+  goScoreBig.textContent = politenessScore + "%";
+  goStage.textContent = "Stage " + (currentStage + 1) + " / " + stages.length;
+  goFeedback.textContent = '"' + opt.label + '" — ' + opt.feedback;
+  gameOverScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function rankFor(score) {
+  if (score >= 90) return {
+    name: "Social Master", cls: "rank-master",
+    feedback: "Outstanding work! You used polite Everyday English formulas in every single situation — welcoming someone, responding to introductions, keeping the conversation going, accepting an invitation enthusiastically, and saying goodbye warmly. Harry would be lucky to have a friend like you. Keep it up!"
+  };
+  if (score >= 70) return {
+    name: "Polite Teenager", cls: "rank-good",
+    feedback: "Well done! You sound friendly and polite, and you made a new friend. To reach the 'Social Master' level, review the tricky formula pairs from 'Say it right' — for example 'Don't mention it' (after 'Thank you') versus 'Glad to meet you' (after 'I'm glad you came'). Little details make your English sound truly natural!"
+  };
+  return {
+    name: "Needs Practice", cls: "rank-practice",
+    feedback: "Good effort — you finished the conversation! However, some of your answers sounded a little cold or awkward, and Harry noticed. Re-read the 'Everyday English' dialogues in Lesson 1b (Ex. 3–6a) and the 'Say it right' phrases (Ex. 8), then play again to raise your score above 70%. You can do it!"
+  };
+}
+
+function showSuccess() {
+  hideTyping();
+  gameScreen.classList.add("hidden");
+  gameOverScreen.classList.add("hidden");
+  successScreen.classList.remove("hidden");
+
+  const t = tier(politenessScore);
+  finalScoreV.textContent = politenessScore + "%";
+  finalScoreV.style.color = "var(--" + t + ")";
+
+  const rank = rankFor(politenessScore);
+  rankChip.className = "rank-chip " + rank.cls;
+  rankName.textContent = rank.name;
+  teacherText.textContent = rank.feedback;
+
+  // Build the dialogue summary from history
+  recapList.innerHTML = "";
+  history.forEach((h, i) => {
+    const item = document.createElement("div");
+    item.className = "recap-item";
+    const chipCls = h.type === "correct" ? "ok" : h.type === "neutral" ? "mid" : "bad";
+    item.innerHTML =
+      '<span class="recap-num">' + (i + 1) + '</span>' +
+      '<div class="recap-body">' +
+        '<div class="recap-stage">' + h.stageTitle + '</div>' +
+        '<div class="recap-harry"></div>' +
+        '<div class="recap-you"></div>' +
+      '</div>' +
+      '<span class="recap-delta ' + chipCls + '">' + (h.delta > 0 ? "+" : "") + h.delta + '%</span>';
+    item.querySelector(".recap-harry").textContent = "Harry: " + h.harry;
+    item.querySelector(".recap-you").textContent = "You: " + h.reply;
+    recapList.appendChild(item);
+  });
+
+  launchConfetti();
+  successScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function restart() {
+  clearTimeout(typingTimer);
+  currentStage = 0;
+  politenessScore = 100;
+  history = [];
+  locked = false;
+  chatLog.innerHTML = "";
+  optionsGrid.innerHTML = "";
+  feedbackPanel.className = "feedback";
+  gameOverScreen.classList.add("hidden");
+  successScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+  updateStatus();
+  renderStage(false);
+  gameScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ---------- Celebration confetti (pure CSS/JS, no assets) ---------- */
+function launchConfetti() {
+  const layer = $("confettiLayer");
+  layer.innerHTML = "";
+  const colors = ["#6366f1", "#14b8a6", "#f59e0b", "#ef4444", "#8b5cf6", "#22c55e", "#fbbf24"];
+  const pieces = 70;
+  for (let i = 0; i < pieces; i++) {
+    const c = document.createElement("span");
+    c.className = "confetto";
+    const size = 6 + Math.random() * 7;
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.width = size + "px";
+    c.style.height = size * (0.6 + Math.random()) + "px";
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = 2.4 + Math.random() * 1.8 + "s";
+    c.style.animationDelay = Math.random() * 0.7 + "s";
+    c.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+    layer.appendChild(c);
+  }
+  setTimeout(() => { layer.innerHTML = ""; }, 5200);
+}
+
+/* ---------- Wire up controls & boot ---------- */
+nextBtn.addEventListener("click", nextStage);
+$("restartBtnGO").addEventListener("click", restart);
+$("restartBtnOK").addEventListener("click", restart);
+
+updateStatus();
+renderStage(false);   // Stage 1 visible immediately on page load; feedback hidden
+</script>
+</body>
+</html>
