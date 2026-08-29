@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Festival Survivor — an interactive ESL text quest for Spotlight 8, Module 1a (Festivals & Celebrations).">
+<title>Festival Survivor — Spotlight 8 · Module 1a</title>
+<style>
+  /* ==========================================================================
+     FESTIVAL SURVIVOR — pure CSS, no external assets
+     Palette: deep slate/purple background, vibrant coral-orange & teal accents
+     ========================================================================== */
+  :root{
+    --bg:        #1e1e24;
+    --bg-deep:   #17171d;
+    --card:      #26262f;
+    --card-2:    #2c2c38;
+    --line:      #3b3b4a;
+    --ink:       #f4f2ec;
+    --muted:     #b9b6c9;
+    --accent:    #ff5a5f;
+    --accent-hi: #ff7b7a;
+    --teal:      #00a699;
+    --teal-hi:   #2dd4bf;
+    --amber:     #ffb93e;
+    --red:       #ff4d4d;
+    --green:     #46d19a;
+    --violet:    #8a7bff;
+    --on-accent: #2a0f12;   /* dark text on bright buttons: WCAG-safe */
+    --radius:    18px;
+    --shadow:    0 20px 60px rgba(0,0,0,.45);
+    --font-ui:   "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-disp: "Trebuchet MS", "Gill Sans", "Segoe UI", Verdana, sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-ui);
+    font-size:16px;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+
+  /* ---- decorative festival glow blobs (pure CSS, no images) -------------- */
+  .bg-fx{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+  .bg-fx .blob{ position:absolute; border-radius:50%; filter:blur(90px); opacity:.35; animation:float 14s ease-in-out infinite alternate; }
+  .blob.b1{ width:520px; height:520px; left:-160px; top:-140px; background:#4b2f6e; }
+  .blob.b2{ width:420px; height:420px; right:-140px; top:12%;  background:#7d3b4b; animation-delay:-4s; }
+  .blob.b3{ width:460px; height:460px; left:22%; bottom:-220px; background:#0e4f4a; animation-delay:-8s; }
+  @keyframes float{ from{ transform:translateY(-18px) } to{ transform:translateY(22px) } }
+
+  /* ---- generic layout ----------------------------------------------------- */
+  #app{ max-width:880px; margin:0 auto; padding:20px 18px 56px; }
+  .site-head{
+    display:flex; align-items:center; gap:10px; padding:10px 2px 22px;
+    font-family:var(--font-disp); letter-spacing:.06em;
+  }
+  .brand-dots{ display:flex; gap:5px; }
+  .brand-dots span{ width:10px; height:10px; border-radius:50%; display:block; }
+  .brand-dots span:nth-child(1){ background:var(--accent); }
+  .brand-dots span:nth-child(2){ background:var(--amber); }
+  .brand-dots span:nth-child(3){ background:var(--teal-hi); }
+  .brand-name{ font-weight:800; font-size:.95rem; text-transform:uppercase; color:var(--muted); }
+  .brand-name b{ color:var(--ink); }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; animation:screenIn .45s ease both; }
+  @keyframes screenIn{ from{ opacity:0; transform:translateY(14px) } to{ opacity:1; transform:none } }
+
+  .site-foot{
+    margin-top:44px; padding-top:18px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:.8rem; display:flex; flex-wrap:wrap; gap:8px 16px; justify-content:space-between;
+  }
+
+  /* ---- buttons ------------------------------------------------------------ */
+  button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+  button:focus-visible, input:focus-visible{ outline:3px solid #ffe9a0; outline-offset:2px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    font-weight:800; font-size:1rem; letter-spacing:.02em;
+    padding:14px 26px; border-radius:999px;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease, opacity .18s;
+    user-select:none; -webkit-tap-highlight-color:transparent;
+  }
+  .btn svg{ width:19px; height:19px; flex:none; }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--accent-hi), var(--accent));
+    color:var(--on-accent);
+    box-shadow:0 8px 24px rgba(255,90,95,.35);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(255,90,95,.5); }
+  .btn-teal{
+    background:linear-gradient(135deg, var(--teal-hi), var(--teal));
+    color:#062522;
+    box-shadow:0 8px 24px rgba(0,166,153,.3);
+  }
+  .btn-teal:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,166,153,.45); }
+  .btn-ghost{
+    border:2px solid var(--line); color:var(--ink); background:rgba(255,255,255,.03);
+  }
+  .btn-ghost:hover{ border-color:var(--teal-hi); color:var(--teal-hi); transform:translateY(-2px); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none !important; box-shadow:none; }
+
+  /* ============================ MENU SCREEN ================================ */
+  .hero{ text-align:center; padding:26px 10px 10px; }
+  .hero .kicker{
+    display:inline-block; font-size:.75rem; font-weight:800; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--teal-hi); border:1px solid rgba(45,212,191,.35); padding:6px 14px; border-radius:999px;
+    margin-bottom:18px; background:rgba(0,166,153,.08);
+  }
+  .hero h1{
+    font-family:var(--font-disp); font-weight:800;
+    font-size:clamp(2.4rem, 7vw, 4rem); line-height:1.02; letter-spacing:-.01em;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(90deg, var(--amber), var(--accent) 55%, var(--violet));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.lead{ max-width:560px; margin:16px auto 0; color:var(--muted); font-size:1.02rem; }
+
+  .setup{ margin-top:34px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:26px clamp(18px,4vw,34px) 30px; box-shadow:var(--shadow); }
+  .setup-grid{ display:grid; gap:22px; }
+  @media(min-width:720px){ .setup-grid{ grid-template-columns:1fr 1.4fr; align-items:start; } }
+
+  .field label{ display:block; font-weight:800; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .field input{
+    width:100%; padding:14px 16px; font-size:1.05rem; font-weight:600; color:var(--ink);
+    background:var(--bg-deep); border:2px solid var(--line); border-radius:14px;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .field input::placeholder{ color:#71707f; }
+  .field input:focus{ border-color:var(--teal-hi); box-shadow:0 0 0 4px rgba(45,212,191,.12); outline:none; }
+  .field input.shake{ animation:shake .4s ease; border-color:var(--red); }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .field .hint{ margin-top:8px; font-size:.8rem; color:var(--muted); }
+
+  .paths{ display:grid; gap:14px; } 
+  @media(min-width:560px){ .paths{ grid-template-columns:1fr 1fr; } }
+  .path-card{
+    position:relative; text-align:left; border:2px solid var(--line); border-radius:16px;
+    background:var(--bg-deep); padding:18px; display:flex; flex-direction:column; gap:8px;
+    transition:transform .2s ease, border-color .2s, box-shadow .2s; min-height:150px;
+  }
+  .path-card:hover{ transform:translateY(-3px); border-color:#565672; }
+  .path-card.selected{ border-color:var(--accent); box-shadow:0 0 0 4px rgba(255,90,95,.15), 0 14px 34px rgba(0,0,0,.4); }
+  .path-card.selected.teal{ border-color:var(--teal-hi); box-shadow:0 0 0 4px rgba(45,212,191,.15), 0 14px 34px rgba(0,0,0,.4); }
+  .path-icon{ width:44px; height:44px; }
+  .path-card h3{ font-family:var(--font-disp); font-size:1.2rem; }
+  .path-card .loc{ font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+  .path-card .tag{ font-size:.88rem; color:var(--muted); }
+  .path-card .best{ font-size:.72rem; font-weight:800; color:var(--amber); letter-spacing:.05em; }
+  .path-card .checkmark{
+    position:absolute; top:12px; right:12px; width:24px; height:24px; border-radius:50%;
+    display:none; align-items:center; justify-content:center; background:var(--accent); color:var(--on-accent);
+  }
+  .path-card.selected.teal .checkmark{ background:var(--teal); color:#062522; }
+  .path-card.selected .checkmark{ display:flex; }
+  .path-card .checkmark svg{ width:14px; height:14px; }
+
+  .start-row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; margin-top:26px; }
+  .menu-msg{ min-height:22px; color:var(--accent-hi); font-weight:700; font-size:.9rem; text-align:center; }
+  .howto{
+    margin-top:22px; border-top:1px dashed var(--line); padding-top:16px;
+    display:grid; gap:8px; font-size:.85rem; color:var(--muted);
+  }
+  .howto li{ list-style:none; display:flex; gap:10px; align-items:flex-start; }
+  .howto svg{ width:15px; height:15px; flex:none; margin-top:3px; color:var(--teal-hi); }
+
+  /* ============================ GAME SCREEN ================================ */
+  .hud{
+    position:sticky; top:10px; z-index:20;
+    background:rgba(30,30,38,.92); backdrop-filter:blur(10px);
+    border:1px solid var(--line); border-radius:16px; padding:14px 16px;
+    display:grid; gap:12px; box-shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+  .hud-top{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
+  .who{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .who .avatar{
+    width:34px; height:34px; border-radius:50%; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:.9rem; color:var(--on-accent);
+    background:linear-gradient(135deg, var(--amber), var(--accent));
+  }
+  .who .names{ min-width:0; }
+  .who .pname{ font-weight:800; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .who .ppath{ font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .hud-actions{ display:flex; gap:8px; align-items:center; }
+  .strikes{ display:flex; align-items:center; gap:6px; font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .strikes .dots{ display:flex; gap:4px; }
+  .strikes .dot{ width:11px; height:11px; border-radius:50%; background:#45455a; border:1px solid #55556d; transition:background .3s; }
+  .strikes .dot.hit{ background:var(--red); border-color:var(--red); box-shadow:0 0 8px rgba(255,77,77,.6); }
+  .btn-help{
+    display:inline-flex; align-items:center; gap:7px; font-size:.8rem; font-weight:800;
+    padding:8px 14px; border-radius:999px; border:2px solid rgba(255,185,62,.5); color:var(--amber);
+    transition:all .18s;
+  }
+  .btn-help:hover{ background:var(--amber); color:#3a2503; transform:translateY(-1px); }
+  .btn-help svg{ width:15px; height:15px; }
+
+  .hud-stats{ display:grid; gap:10px; grid-template-columns:1fr; }
+  @media(min-width:620px){ .hud-stats{ grid-template-columns:1fr 1fr auto; align-items:center; } }
+  .stat-top{ display:flex; justify-content:space-between; font-size:.72rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+  .stat-top .lbl{ display:inline-flex; align-items:center; gap:6px; }
+  .stat-top svg{ width:13px; height:13px; }
+  .bar{ height:12px; background:#101016; border-radius:999px; overflow:hidden; border:1px solid #33333f; }
+  .bar-fill{
+    height:100%; width:50%; border-radius:999px;
+    transition:width .7s cubic-bezier(.22,1,.36,1), background .4s;
+  }
+  .bar-fill.energy{ background:linear-gradient(90deg, var(--teal-hi), var(--teal)); box-shadow:0 0 12px rgba(45,212,191,.5); }
+  .bar-fill.energy.mid{ background:linear-gradient(90deg, #ffd76e, var(--amber)); box-shadow:0 0 12px rgba(255,185,62,.5); }
+  .bar-fill.energy.low{ background:linear-gradient(90deg, #ff7a6b, var(--red)); box-shadow:0 0 12px rgba(255,77,77,.55); animation:pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse{ 50%{ filter:brightness(1.35); } }
+  .bar-fill.vibes{ background:linear-gradient(90deg, var(--amber), var(--accent)); box-shadow:0 0 12px rgba(255,120,90,.5); }
+  .stat-val{ color:var(--ink); }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+    font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase;
+    border:2px solid transparent; transition:all .3s; white-space:nowrap;
+  }
+  .pill svg{ width:15px; height:15px; }
+  .pill.clean { background:rgba(0,166,153,.14); color:var(--teal-hi); border-color:rgba(45,212,191,.4); }
+  .pill.messy { background:rgba(255,185,62,.12); color:var(--amber); border-color:rgba(255,185,62,.45); }
+  .pill.ruined{ background:rgba(255,77,77,.12);  color:#ff8b8b; border-color:rgba(255,77,77,.5); animation:pulse 1.4s ease-in-out infinite; }
+
+  .progress{ display:flex; gap:8px; align-items:center; justify-content:center; margin:20px 0 14px; }
+  .progress .pdot{ width:26px; height:6px; border-radius:999px; background:#3a3a49; transition:all .35s; }
+  .progress .pdot.now{ background:var(--accent); box-shadow:0 0 10px rgba(255,90,95,.6); }
+  .progress .pdot.done{ background:var(--teal); }
+
+  /* scene card */
+  .scene-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:clamp(20px, 4vw, 34px); box-shadow:var(--shadow);
+  }
+  .scene-meta{ display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; margin-bottom:12px; }
+  .chip{
+    font-size:.7rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+    padding:6px 12px; border-radius:999px; color:var(--muted); border:1px solid var(--line);
+  }
+  .chip.hot{ color:var(--amber); border-color:rgba(255,185,62,.45); background:rgba(255,185,62,.07); }
+  .scene-card h2{
+    font-family:var(--font-disp); font-size:clamp(1.5rem, 4vw, 2.1rem); font-weight:800; letter-spacing:-.01em;
+    margin-bottom:14px; display:flex; gap:12px; align-items:center;
+  }
+  .scene-card h2 .sicon{ width:34px; height:34px; flex:none; color:var(--accent-hi); }
+  .scene-card h2 .sicon svg{ width:100%; height:100%; }
+  .scene-text{
+    font-size:clamp(1rem, 2.5vw, 1.12rem); line-height:1.75; color:#e8e5f2;
+    background:var(--bg-deep); border:1px solid #33333f; border-radius:14px;
+    padding:20px clamp(16px,3vw,24px); cursor:default; min-height:150px;
+  }
+  .scene-text .vocab{ color:#ffd76e; font-weight:700; text-decoration:underline dotted rgba(255,215,110,.6); text-underline-offset:3px; }
+  .scene-text .caret{ display:inline-block; width:9px; height:1.1em; margin-left:2px; vertical-align:-2px; background:var(--accent); animation:blink .7s steps(1) infinite; }
+  @keyframes blink{ 50%{ opacity:0 } }
+  .tw-w{ opacity:0; }
+  .tw-w.on{ opacity:1; transition:opacity .22s ease; }
+  .skip-hint{ font-size:.72rem; color:#71707f; text-align:right; margin-top:6px; min-height:16px; letter-spacing:.04em; }
+
+  .choices{ display:grid; gap:12px; margin-top:18px; }
+  .choice{
+    display:flex; gap:14px; align-items:flex-start; text-align:left;
+    background:var(--bg-deep); border:2px solid var(--line); border-radius:14px;
+    padding:15px 16px; font-size:.96rem; line-height:1.5; color:var(--ink);
+    transition:transform .16s ease, border-color .16s, box-shadow .16s, opacity .3s;
+    opacity:0; transform:translateY(10px);
+  }
+  .choice.in{ opacity:1; transform:none; }
+  .choice .letter{
+    flex:none; width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:.85rem; background:#34343f; color:var(--amber); border:1px solid #44445a;
+    transition:all .16s; margin-top:1px;
+  }
+  .choice:hover:not(:disabled){ transform:translateY(-2px); border-color:#5a5a75; box-shadow:0 10px 22px rgba(0,0,0,.35); }
+  .choice:hover:not(:disabled) .letter{ background:var(--amber); color:#3a2503; border-color:var(--amber); }
+  .choice:disabled{ cursor:default; }
+  .choice.picked-good{ border-color:var(--green); box-shadow:0 0 0 3px rgba(70,209,154,.2); }
+  .choice.picked-ok{ border-color:var(--amber); box-shadow:0 0 0 3px rgba(255,185,62,.2); }
+  .choice.picked-bad{ border-color:var(--red); box-shadow:0 0 0 3px rgba(255,77,77,.22); }
+  .choice.dim{ opacity:.35; }
+
+  /* feedback panel */
+  .feedback{
+    margin-top:20px; border-radius:var(--radius); padding:20px clamp(16px,3vw,26px);
+    border:2px solid var(--line); background:var(--card-2);
+    animation:fbIn .4s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes fbIn{ from{ opacity:0; transform:translateY(14px) scale(.98) } to{ opacity:1; transform:none } }
+  .feedback.good{ border-color:rgba(70,209,154,.6); box-shadow:0 0 0 4px rgba(70,209,154,.08), var(--shadow); }
+  .feedback.ok  { border-color:rgba(255,185,62,.6); box-shadow:0 0 0 4px rgba(255,185,62,.08), var(--shadow); }
+  .feedback.bad { border-color:rgba(255,77,77,.6);  box-shadow:0 0 0 4px rgba(255,77,77,.1),  var(--shadow); }
+  .fb-title{ display:flex; align-items:center; gap:10px; font-family:var(--font-disp); font-weight:800; font-size:1.15rem; margin-bottom:8px; }
+  .fb-title svg{ width:22px; height:22px; flex:none; }
+  .feedback.good .fb-title{ color:var(--green); } 
+  .feedback.ok   .fb-title{ color:var(--amber); } 
+  .feedback.bad  .fb-title{ color:#ff8b8b; }
+  .fb-text{ color:#e8e5f2; line-height:1.65; font-size:.98rem; }
+  .fb-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .dchip{
+    font-size:.75rem; font-weight:800; letter-spacing:.05em; padding:6px 12px; border-radius:999px;
+    animation:chipPop .35s ease both;
+  }
+  .dchip:nth-child(2){ animation-delay:.08s } .dchip:nth-child(3){ animation-delay:.16s }
+  @keyframes chipPop{ from{ transform:scale(.7); opacity:0 } to{ transform:scale(1); opacity:1 } }
+  .dchip.up  { background:rgba(70,209,154,.14); color:var(--green); border:1px solid rgba(70,209,154,.4); }
+  .dchip.down{ background:rgba(255,77,77,.14);  color:#ff9b9b; border:1px solid rgba(255,77,77,.4); }
+  .dchip.info{ background:rgba(138,123,255,.14); color:#b6aaff; border:1px solid rgba(138,123,255,.4); }
+  .fb-next{ margin-top:18px; display:flex; justify-content:flex-end; }
+
+  /* ============================ END SCREEN ================================ */
+  .end-card{
+    text-align:center; background:var(--card); border:1px solid var(--line);
+    border-radius:22px; padding:clamp(28px,5vw,48px) clamp(18px,4vw,40px); box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .end-ribbon{
+    position:absolute; inset:0 0 auto 0; height:6px;
+    background:linear-gradient(90deg, var(--teal-hi), var(--amber), var(--accent), var(--violet));
+  }
+  .end-icon{ width:74px; height:74px; margin:6px auto 14px; display:block; }
+  .end-icon.legend{ color:var(--amber); filter:drop-shadow(0 0 18px rgba(255,185,62,.55)); }
+  .end-icon.tired { color:var(--violet); filter:drop-shadow(0 0 14px rgba(138,123,255,.5)); }
+  .end-icon.fail  { color:#ff8b8b; filter:drop-shadow(0 0 14px rgba(255,77,77,.45)); }
+  .end-kicker{ font-size:.72rem; font-weight:800; letter-spacing:.26em; text-transform:uppercase; color:var(--muted); }
+  .end-title{ font-family:var(--font-disp); font-size:clamp(2rem,6vw,3.1rem); font-weight:800; margin:6px 0 12px; letter-spacing:-.01em; }
+  .end-title.legend{ background:linear-gradient(90deg, var(--amber), var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .end-title.tired{ color:#c9beff; }
+  .end-title.fail{ color:#ff8b8b; }
+  .end-msg{ max-width:520px; margin:0 auto; color:var(--muted); font-size:1rem; line-height:1.7; }
+  .end-msg b{ color:var(--ink); }
+
+  .end-stats{ display:grid; gap:12px; grid-template-columns:repeat(2,1fr); margin:28px auto 0; max-width:520px; }
+  @media(min-width:600px){ .end-stats{ grid-template-columns:repeat(4,1fr); } }
+  .tile{ background:var(--bg-deep); border:1px solid var(--line); border-radius:14px; padding:14px 8px; }
+  .tile .tv{ font-family:var(--font-disp); font-size:1.5rem; font-weight:800; }
+  .tile .tv.e{ color:var(--teal-hi); } .tile .tv.v{ color:var(--amber); } .tile .tv.c{ color:var(--violet); } .tile .tv.h{ color:var(--accent-hi); }
+  .tile .tl{ font-size:.65rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+
+  .review-box{ max-width:560px; margin:24px auto 0; text-align:left; background:rgba(255,185,62,.06); border:1px dashed rgba(255,185,62,.4); border-radius:14px; padding:16px 20px; }
+  .review-box h4{ font-size:.78rem; letter-spacing:.14em; text-transform:uppercase; color:var(--amber); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .review-box h4 svg{ width:15px; height:15px; }
+  .review-words{ display:flex; flex-wrap:wrap; gap:8px; }
+  .rword{ font-size:.82rem; font-weight:700; background:var(--bg-deep); border:1px solid var(--line); border-radius:999px; padding:6px 13px; color:var(--ink); }
+  .review-box .allgood{ color:var(--muted); font-size:.9rem; }
+
+  .end-actions{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:30px; }
+
+  #confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden; }
+  .confetti{ position:absolute; top:-14px; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(720deg); opacity:.6; } }
+
+  /* ------------------------------ MODAL ----------------------------------- */
+  .modal{
+    position:fixed; inset:0; z-index:80; display:none;
+    align-items:center; justify-content:center; padding:18px;
+    background:rgba(12,12,16,.72); backdrop-filter:blur(6px);
+  }
+  .modal.open{ display:flex; animation:fbIn .25s ease both; }
+  .modal-card{
+    width:100%; max-width:760px; max-height:86vh; overflow:auto;
+    background:var(--card); border:1px solid var(--line); border-radius:20px;
+    box-shadow:var(--shadow); padding:22px clamp(16px,3vw,28px) 26px;
+  }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0; background:var(--card); padding:4px 0 14px; }
+  .modal-head h3{ font-family:var(--font-disp); font-size:1.25rem; display:flex; align-items:center; gap:10px; }
+  .modal-head h3 svg{ width:22px; height:22px; color:var(--amber); }
+  .modal-close{
+    width:38px; height:38px; border-radius:12px; border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center; transition:all .18s; flex:none;
+  }
+  .modal-close:hover{ border-color:var(--red); color:#ff8b8b; transform:rotate(90deg); }
+  .modal-close svg{ width:17px; height:17px; }
+  .modal-note{
+    font-size:.85rem; color:var(--muted); background:rgba(255,90,95,.08);
+    border:1px solid rgba(255,90,95,.3); border-radius:12px; padding:10px 14px; margin-bottom:16px;
+  }
+  .modal-note b{ color:var(--accent-hi); }
+  .vocab-grid{ display:grid; gap:12px; grid-template-columns:1fr; }
+  @media(min-width:620px){ .vocab-grid{ grid-template-columns:1fr 1fr; } }
+  .vocab-item{ background:var(--bg-deep); border:1px solid #33333f; border-radius:12px; padding:12px 16px; }
+  .vocab-item dt{ font-weight:800; color:#ffd76e; font-size:.92rem; }
+  .vocab-item dd{ font-size:.85rem; color:var(--muted); margin-top:4px; }
+  .vocab-item dd .ex{ display:block; margin-top:5px; font-style:italic; color:#8f9fba; }
+
+  /* toast */
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+    background:#2a2a34; border:1px solid var(--amber); color:var(--amber);
+    font-size:.85rem; font-weight:700; padding:11px 20px; border-radius:999px;
+    opacity:0; pointer-events:none; transition:all .3s ease; z-index:90; box-shadow:var(--shadow);
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  }
+  .hidden{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.001s !important; animation-iteration-count:1 !important; transition-duration:.001s !important; }
+  }
+  @media (max-width:520px){
+    #app{ padding:14px 12px 40px; }
+    .hud{ top:6px; padding:12px; }
+    .btn{ padding:13px 20px; font-size:.95rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- decorative background glow -->
+<div class="bg-fx" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<div id="app">
+
+  <!-- ======================= BRAND HEADER ======================= -->
+  <header class="site-head">
+    <div class="brand-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="brand-name">Festival <b>Survivor</b></div>
+  </header>
+
+  <main>
+
+    <!-- ======================= MENU SCREEN ======================= -->
+    <section id="screen-menu" class="screen active" aria-labelledby="menu-title">
+      <div class="hero">
+        <span class="kicker">Spotlight 8 · Module 1a · Let’s Party!</span>
+        <h1 id="menu-title">Can you survive<br><span class="grad">the festival?</span></h1>
+        <p class="lead">Read the story, make smart choices, and prove you really understand the vocabulary of the world’s wildest celebrations. Three big vocabulary mix-ups — and you are out!</p>
+      </div>
+
+      <div class="setup">
+        <div class="setup-grid">
+
+          <!-- player name -->
+          <div class="field">
+            <label for="player-name">Your name, survivor</label>
+            <input id="player-name" type="text" maxlength="18" placeholder="e.g. Alex" autocomplete="off">
+            <div class="hint">Energy starts at 100%. Festival Vibes at 20%. Keep them up!</div>
+          </div>
+
+          <!-- path choice -->
+          <div class="field">
+            <label id="path-label">Choose your festival</label>
+            <div class="paths" role="radiogroup" aria-labelledby="path-label">
+
+              <button type="button" class="path-card" id="card-splatfest" role="radio" aria-checked="false" data-path="splatfest">
+                <span class="checkmark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <svg class="path-icon" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M14 30c-7 1-10 6-8 9 1 2 5 2 7 0" fill="#e04848"/>
+                  <circle cx="27" cy="28" r="14" fill="#ff5a5f"/>
+                  <circle cx="22" cy="23" r="4.5" fill="#ff8a83" opacity=".7"/>
+                  <path d="M27 14l-3-5m3 5l4-4m-4 4l1-6m-1 6l6 1" stroke="#3fae62" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="loc">Buñol · Spain</span>
+                <h3>Splatfest Adventure</h3>
+                <span class="tag">Food fights, a giant cooking contest and fireworks at La Tomatina.</span>
+                <span class="best" id="best-splatfest" hidden></span>
+              </button>
+
+              <button type="button" class="path-card teal" id="card-maslenitsa" role="radio" aria-checked="false" data-path="maslenitsa">
+                <span class="checkmark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <svg class="path-icon" viewBox="0 0 48 48" aria-hidden="true">
+                  <circle cx="24" cy="24" r="10" fill="#ffb93e"/>
+                  <circle cx="20.5" cy="22" r="1.7" fill="#7a4a08"/><circle cx="27.5" cy="22" r="1.7" fill="#7a4a08"/>
+                  <path d="M20 27c1.4 1.6 6.6 1.6 8 0" stroke="#7a4a08" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  <g stroke="#ffb93e" stroke-width="2.6" stroke-linecap="round">
+                    <path d="M24 6v4M24 38v4M6 24h4M38 24h4M11 11l3 3M34 34l3 3M37 11l-3 3M14 34l-3 3"/>
+                  </g>
+                </svg>
+                <span class="loc">Moscow · Russia</span>
+                <h3>Maslenitsa Celebration</h3>
+                <span class="tag">Golden blini, a costume parade, charity stalls and a grand bonfire.</span>
+                <span class="best" id="best-maslenitsa" hidden></span>
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="start-row">
+          <button class="btn btn-primary" id="btn-start">
+            Start the Adventure
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="btn btn-ghost" id="btn-menu-vocab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Target Vocabulary
+          </button>
+        </div>
+        <p class="menu-msg" id="menu-msg" role="alert"></p>
+
+        <ul class="howto">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span><b>5 scenes</b> per festival — every run is a little different: one random encounter and changing story texts.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>Smart choices raise your <b>Festival Vibes</b>; tired or confused choices drain your <b>Energy</b>.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><b>3 vocabulary mix-ups</b> or <b>0% Energy</b> = Festival Fail. Choose with your head!</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ======================= GAME SCREEN ======================= -->
+    <section id="screen-game" class="screen" aria-label="Festival game">
+
+      <!-- persistent stats HUD -->
+      <div class="hud" id="hud">
+        <div class="hud-top">
+          <div class="who">
+            <div class="avatar" id="hud-avatar">?</div>
+            <div class="names">
+              <div class="pname" id="hud-name">Player</div>
+              <div class="ppath" id="hud-path">Festival</div>
+            </div>
+          </div>
+          <div class="hud-actions">
+            <div class="strikes" title="Vocabulary mix-ups. Three strikes = Festival Fail.">
+              <span>Mix-ups</span>
+              <span class="dots" id="strike-dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span>
+            </div>
+            <button class="btn-help" id="btn-vocab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Vocabulary Help
+            </button>
+          </div>
+        </div>
+        <div class="hud-stats">
+          <div class="stat">
+            <div class="stat-top">
+              <span class="lbl"><svg viewBox="0 0 24 24" fill="var(--teal-hi)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Energy</span>
+              <span class="stat-val" id="val-energy">100%</span>
+            </div>
+            <div class="bar"><div class="bar-fill energy" id="bar-energy" role="progressbar" aria-label="Energy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" style="width:100%"></div></div>
+          </div>
+          <div class="stat">
+            <div class="stat-top">
+              <span class="lbl"><svg viewBox="0 0 24 24" fill="var(--amber)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Festival Vibes</span>
+              <span class="stat-val" id="val-vibes">20%</span>
+            </div>
+            <div class="bar"><div class="bar-fill vibes" id="bar-vibes" role="progressbar" aria-label="Festival vibes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" style="width:20%"></div></div>
+          </div>
+          <div class="pill clean" id="pill-clothes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+            <span id="val-clothes">Clean</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- scene progress -->
+      <div class="progress" id="progress" aria-label="Scene progress"></div>
+
+      <!-- scene card -->
+      <article class="scene-card">
+        <div class="scene-meta">
+          <span class="chip" id="scene-num">Scene 1 of 5</span>
+          <span class="chip hot" id="scene-loc">Festival</span>
+        </div>
+        <h2><span class="sicon" id="scene-icon"></span><span id="scene-title">Scene title</span></h2>
+        <p class="scene-text" id="scene-text" aria-live="off" title="Click to reveal the full text"></p>
+        <div class="skip-hint" id="skip-hint">tip: click the text to reveal it instantly</div>
+        <div class="choices" id="choices" role="group" aria-label="Your choices"></div>
+      </article>
+
+      <!-- feedback panel -->
+      <div class="feedback hidden" id="feedback" tabindex="-1" aria-live="polite">
+        <div class="fb-title" id="fb-title"></div>
+        <p class="fb-text" id="fb-text"></p>
+        <div class="fb-chips" id="fb-chips"></div>
+        <div class="fb-next">
+          <button class="btn btn-teal" id="btn-continue">
+            Continue
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= END SCREEN ======================= -->
+    <section id="screen-end" class="screen" aria-label="Game result">
+      <div class="end-card">
+        <div class="end-ribbon" aria-hidden="true"></div>
+        <span class="end-icon" id="end-icon" aria-hidden="true"></span>
+        <div class="end-kicker" id="end-kicker">festival over</div>
+        <h2 class="end-title" id="end-title">Result</h2>
+        <p class="end-msg" id="end-msg"></p>
+
+        <div class="end-stats">
+          <div class="tile"><div class="tv e" id="end-energy">0%</div><div class="tl">Energy</div></div>
+          <div class="tile"><div class="tv v" id="end-vibes">0%</div><div class="tl">Vibes</div></div>
+          <div class="tile"><div class="tv c" id="end-clothes">–</div><div class="tl">Clothes</div></div>
+          <div class="tile"><div class="tv h" id="end-helps">0</div><div class="tl">Glossary peeks</div></div>
+        </div>
+
+        <div class="review-box">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Notebook — words to review</h4>
+          <div class="review-words" id="end-review"></div>
+        </div>
+
+        <div class="end-actions">
+          <button class="btn btn-primary" id="btn-again">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Play Again
+          </button>
+          <button class="btn btn-ghost" id="btn-other">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Try the Other Festival
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-foot">
+    <span>Festival Survivor · an ESL text quest</span>
+    <span>Spotlight 8 · Module 1a · Festivals &amp; Celebrations (pp. 10–11)</span>
+  </footer>
+</div>
+
+<!-- ======================= VOCABULARY MODAL ======================= -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Target Vocabulary
+      </h3>
+      <button class="modal-close" id="modal-close" aria-label="Close vocabulary help">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="modal-note">Peeking during a game <b>costs 5 Vibes</b> each time — real survivors think for themselves!</p>
+    <dl class="vocab-grid" id="vocab-list"></dl>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="confetti-layer" aria-hidden="true"></div>
+<span class="sr-only" id="aria-live" aria-live="polite"></span>
+
+<script>
+(function(){
+"use strict";
+
+/* =======================================================================
+   FESTIVAL SURVIVOR — encapsulated game module (no globals leaked)
+   ======================================================================= */
+const $  = function(sel, root){ return (root||document).querySelector(sel); };
+const $$ = function(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); };
+const REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- helpers ---------------- */
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+function shuffle(arr){
+  for(let i=arr.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+/* =======================================================================
+   TARGET VOCABULARY — Spotlight 8, Module 1a (pp. 10–11)
+   ======================================================================= */
+const VOCAB = [
+  { t:"spare change of clothes", d:"extra clothes you bring with you so you can change if your clothes get dirty or wet.", ex:"Smart visitors pack a spare change of clothes for La Tomatina." },
+  { t:"messy", d:"dirty and untidy; not neat.", ex:"After the food fight, the streets are terribly messy." },
+  { t:"food fight", d:"a funny battle in which people throw food at each other.", ex:"La Tomatina is the world’s biggest food fight." },
+  { t:"strong tradition", d:"a custom that people have followed for a long time.", ex:"Throwing tomatoes is a strong tradition in Buñol." },
+  { t:"cooking contest", d:"a competition to see who cooks the best dish.", ex:"The cooks prepare a giant paella for the cooking contest." },
+  { t:"mock kidnap", d:"a pretend (fake) kidnapping, played as a game or a show.", ex:"At the pirate festival, they mock kidnap the mayor!" },
+  { t:"fancy dress costumes", d:"special or funny clothes that you wear to a party or festival.", ex:"Everyone wears fancy dress costumes at the pirate festival." },
+  { t:"experience life as a pirate", d:"to feel and live like a real pirate for a short time.", ex:"Visitors can experience life as a pirate for a weekend." },
+  { t:"transforms into", d:"changes completely into something different.", ex:"The quiet town transforms into a pirate port." },
+  { t:"raises money for local charities", d:"collects money to help people and projects in the local area.", ex:"The scarecrow festival raises money for local charities." },
+  { t:"bright idea", d:"a clever, smart idea.", ex:"A tomato costume — what a bright idea!" },
+  { t:"enter the competition", d:"to take part in a competition.", ex:"Over 100 people enter the competition every year." },
+  { t:"celebrates the end of winter", d:"has a party because winter is finishing.", ex:"Maslenitsa celebrates the end of winter." },
+  { t:"symbolise the sun", d:"to represent the sun; to be a symbol of it.", ex:"Round, golden blini symbolise the sun." },
+  { t:"big bonfire", d:"a large outdoor fire.", ex:"They burn the straw figure on a big bonfire." },
+  { t:"traditional blini", d:"thin Russian pancakes; a traditional dish of Maslenitsa.", ex:"People eat traditional blini with jam or sour cream." },
+  { t:"make sure", d:"to check that something is OK or certain.", ex:"Make sure you arrive before the parade starts!" },
+  { t:"take place", d:"to happen; to occur.", ex:"The festival takes place in the last week of August." },
+  { t:"attract people", d:"to make people interested so that they come.", ex:"The colourful parade attracts people from everywhere." },
+  { t:"let off fireworks", d:"to set off / launch fireworks into the sky.", ex:"At midnight they let off fireworks over the port." },
+  { t:"fake = mock", d:"synonyms: both words mean “not real, pretend”.", ex:"A fake sword, a mock battle — both are pretend." },
+  { t:"huge ≠ small", d:"antonyms: huge means very big; small means not big.", ex:"A huge crowd of people came to the small village." },
+  { t:"beginning ≠ ending", d:"antonyms: beginning is the start; ending is the finish.", ex:"The beginning of the week is Monday; the ending is Sunday." }
+];
+
+/* =======================================================================
+   SCENE CONTENT — Path 1: La Tomatina, Buñol (Spain)
+   Choice kinds: good (best), ok (works but costs), bad (vocab mix-up)
+   effects: e = energy, v = vibes, clothes = new clothes state,
+   flag = set a story flag, lex = vocabulary word misunderstood (strike)
+   ======================================================================= */
+const SPLATFEST = {
+  title:"Splatfest Adventure",
+  loc:"Buñol · Spain",
+  scenes:[
+
+    /* —— Scene 1: ARRIVAL (spare change of clothes / food fight / strong tradition) —— */
+    {
+      title:"Arrival in Buñol",
+      texts:[
+        "The little Spanish town of Buñol is calm and sunny — but not for long! Today the town <span class='vocab'>transforms into</span> the world’s craziest battlefield: La Tomatina, a huge <span class='vocab'>food fight</span>, <span class='vocab'>takes place</span> in the main streets. It is a <span class='vocab'>strong tradition</span> here — every August since 1945, thousands of people come to throw tomatoes and laugh. You have one hour before the first cannon. What do you wear for the big day?",
+        "Welcome to Buñol, a small town near Valencia! In one hour these quiet streets will host the world’s most famous <span class='vocab'>food fight</span> — La Tomatina! It is a <span class='vocab'>strong tradition</span>, and the red chaos <span class='vocab'>attracts people</span> from every corner of the planet. There is only one rule today: everything and everyone gets <span class='vocab'>messy</span>. Your backpack is open on the hotel bed. What do you put on?"
+      ],
+      choices:[
+        { label:"Wear your best designer outfit — you want to look amazing in the festival photos.",
+          kind:"ok", ef:{ e:0, v:-5, clothes:"Ruined" },
+          fb:"Ten minutes later your designer outfit looks like modern art. A food fight is always MESSY — dirty and untidy — so smart visitors never wear their best clothes to La Tomatina." },
+        { label:"Pack a spare change of clothes in a small bag and wear something old and comfortable.",
+          kind:"good", ef:{ e:0, v:15, flag:"spare" },
+          fb:"Perfect survival plan! A spare change of clothes means extra clothes you put on when the first set gets wet and dirty. The tomato chaos has no chance against a prepared survivor." },
+        { label:"Stay in the hotel — you read that the festival includes a mock kidnap, and that sounds too risky.",
+          kind:"bad", lex:"mock kidnap", ef:{ e:-15, v:-5 },
+          fb:"Wrong festival! A mock kidnap — a pretend kidnapping game — happens at the pirate festival in England, not in Spain. While you hide, you miss the opening parade and your morning excitement melts away." }
+      ]
+    },
+
+    /* —— Scene 2: THE FIGHT BEGINS (messy / participation) —— */
+    {
+      title:"The Fight Begins",
+      texts:[
+        "BOOM! The cannon fires and tomato rain begins! Trucks unload mountains of soft red tomatoes, and the streets quickly become sloppy and <span class='vocab'>messy</span> — a red river of juice. Around you, laughing strangers slide, splash and shout. This is the moment. What do you do?",
+        "At exactly eleven o’clock, tomato war starts! In seconds the clean street turns into a slippery, wonderfully <span class='vocab'>messy</span> red river. Juice drips off roofs — and off noses. A stranger already threw the first tomato at you. Rule number one of a <span class='vocab'>food fight</span>: have fun! What is your move?"
+      ],
+      choices:[
+        { label:"Fill your hands with tomatoes, aim at shoulders (never faces!) and shout: “¡Viva la Tomatina!”",
+          kind:"good", ef:{ e:0, v:20, clothes:"Messy" },
+          fb:"You are in the middle of the action — your Festival Vibes jump sky-high! But look down: your clothes are now completely MESSY. That is the whole point of a real food fight!" },
+        { label:"Hide behind a doorway and watch the chaos safely from the side.",
+          kind:"ok", ef:{ e:-10, v:-5 },
+          fb:"You stay clean, but your heart sinks a little. Watching a food fight is not the same as being in it — and standing still in the cold tomato wind nibbles at your energy too." },
+        { label:"Pick tomatoes off the ground and eat them quickly — this must be part of the cooking contest.",
+          kind:"bad", lex:"cooking contest", ef:{ e:-10, v:-5 },
+          fb:"Oops! A food fight and a cooking contest are two different things. Street tomatoes are for throwing, not for lunch — your stomach gives you a warning rumble. The cooking contest comes later, with fresh food." }
+      ]
+    },
+
+    /* —— Scene 3: RANDOM ENCOUNTER (replayability — one of two) —— */
+    { pool:[
+      {
+        title:"The Giant Paella",
+        text:"When the second cannon ends the fight, another <span class='vocab'>strong tradition</span> begins: the famous <span class='vocab'>cooking contest</span>! Local chefs prepare a giant paella — the traditional Spanish rice dish — in a pan the size of a swimming pool. The amazing smell of chicken, rice and saffron <span class='vocab'>attracts people</span> from every street. The judges are waiting. Your move?",
+        choices:[
+          { label:"Join the queue, taste a plate of the traditional dish and tell the cooks: “¡Está riquísimo!” — you want to experience real Spanish culture.",
+            kind:"good", ef:{ e:10, v:15 },
+            fb:"Great instinct! A cooking contest is a competition for the best food, and tasting the dish lets you experience the tradition with all your senses. The warm paella restores your energy — and the cooks love your Spanish." },
+          { label:"Offer the chefs a bright new recipe idea: paella with extra tomato juice, obviously.",
+            kind:"ok", ef:{ e:0, v:-5 },
+            fb:"The chefs laugh so hard they nearly drop their spoons. After an hour of tomato fighting, nobody in Buñol wants MORE tomatoes. Bright ideas are welcome at festivals — just maybe not this one today." },
+          { label:"Complain loudly that paella is fake Spanish food and demand to see the “real” national dish.",
+            kind:"bad", lex:"fake = mock", ef:{ e:-5, v:-15 },
+            fb:"Careful with “fake”! Fake means not real — like a pretend beard or a mock battle. Paella is a truly traditional dish. The queue goes quiet, you blush tomato-red, and your Vibes sink." }
+        ]
+      },
+      {
+        title:"The Great Clean-Up",
+        text:"The tomato war is over, and Buñol looks like the inside of a ketchup bottle. Fire trucks arrive to blast clean water over the red, <span class='vocab'>messy</span> streets and the crowd. Everyone is soaked, cold and laughing. Wet tomato skins are stuck in your shoes. How do you survive the clean-up?",
+        choices:[
+          { label:"Find your small bag and change into your spare change of clothes — if you packed them.",
+            kind:"good",
+            cond:{ flag:"spare",
+              then:{ ef:{ e:5, v:15, clothes:"Clean" }, fb:"Your spare change of clothes saves the day — dry, warm and comfortable! This is exactly why smart festival survivors plan ahead. You look like a guest of honour again." },
+              else:{ ef:{ e:-10, v:0 }, fb:"You reach for your bag… and remember you never packed spare clothes. The walk back towards the hotel is long, wet and cold. Lesson learned: next time, plan like a survivor." }
+            } },
+          { label:"Stand under the fire truck’s water spray for a public shower. Cold — but effective.",
+            kind:"ok", ef:{ e:-15, v:5 },
+            fb:"The icy water wakes you up instantly! You lose some Energy, but the whole crowd cheers for your courage. Your clothes stay stained and messy, though." },
+          { label:"Lie down and swim through the tomato river — you heard the town transforms into a giant swimming pool at noon.",
+            kind:"bad", lex:"transforms into", ef:{ e:-10, v:-10 },
+            fb:"Er… no. “Transforms into” means completely changes into something different — but Buñol transforms into a food-fight arena, not a swimming pool. Nobody joins your tomato swim, and you feel a bit silly. And colder." }
+        ]
+      }
+    ]},
+
+    /* —— Scene 4: THE COSTUME CROWD (fancy dress vs mock kidnap) —— */
+    {
+      title:"The Costume Crowd",
+      texts:[
+        "In the afternoon, a parade floods the streets. Groups of friends wear matching <span class='vocab'>fancy dress costumes</span>: giant tomatoes, chefs — even pirates! A local dance circle opens and someone waves at you to join in. What happens next?",
+        "Music starts in the main square: drummers, dancers and a crowd in crazy <span class='vocab'>fancy dress costumes</span> — one family is dressed as a packet of crisps! A friendly woman offers you a free foam tomato hat. What do you do?"
+      ],
+      choices:[
+        { label:"Put on the free foam tomato hat and dance with the costume crowd like a local.",
+          kind:"good", ef:{ e:0, v:15 },
+          fb:"Yes! Fancy dress costumes are just fun outfits for parties, and dancing with strangers is the beating heart of festival life. Your Vibes soar." },
+        { label:"Buy the most elaborate costume in the souvenir shop — the full-body tomato suit, 60 euros.",
+          kind:"ok", ef:{ e:-10, v:5 },
+          fb:"The full tomato suit is magnificent… and heavy, hot and extremely itchy. Inside your personal oven, your Energy slowly melts away. Was it worth it? The photos say yes." },
+        { label:"Run! People in costumes might pretend to mock kidnap you, and you are not in the mood.",
+          kind:"bad", lex:"mock kidnap", ef:{ e:-15, v:-5 },
+          fb:"Relax! Fancy dress costumes are only festive outfits. A mock kidnap is a pretend game from the pirate festival in England — nothing to fear in Buñol. Your panicked jogging costs energy anyway." }
+      ]
+    },
+
+    /* —— Scene 5: THE FINALE (let off fireworks / make sure) —— */
+    {
+      title:"The Firework Finale",
+      texts:[
+        "As the sun sets over the red-washed town, everyone gathers in the main square. “Tonight they <span class='vocab'>let off fireworks</span>!” a boy tells you excitedly. The countdown begins… but so does the pushing of the huge crowd. Where do you stand?",
+        "Night falls, and the festival prepares its grand finale: soon the town will <span class='vocab'>let off fireworks</span>, a tradition that fills the dark sky with colour. The square is packed shoulder to shoulder. Your survival instinct whispers: choose your spot carefully."
+      ],
+      choices:[
+        { label:"Stay behind the safety line with the crowd and watch the firework display, showered in golden light.",
+          kind:"good", ef:{ e:0, v:15 },
+          fb:"BANG! The sky becomes a garden of light. To let off fireworks means to launch them into the sky — and from the safe zone it is pure magic. The perfect ending to a perfectly survived festival." },
+        { label:"Leave a little early to make sure you catch the last bus back to the hotel.",
+          kind:"ok", ef:{ e:0, v:-10 },
+          fb:"“Make sure” means to check that something is certain — very smart with transport! But behind you the sky explodes with colour, and on the quiet bus you know you missed the best part." },
+        { label:"Dodge around the barriers and run close to the fireworks for the ultimate selfie.",
+          kind:"bad", ef:{ e:-20, v:5 },
+          fb:"A security guard catches you in seconds. Fireworks are beautiful — and seriously dangerous. Great photo, though! Your heart pounds and your Energy crashes." }
+      ]
+    }
+  ]
+};
+
+/* =======================================================================
+   SCENE CONTENT — Path 2: Maslenitsa, Moscow (Russia)
+   ======================================================================= */
+const MASLENITSA = {
+  title:"Maslenitsa Celebration",
+  loc:"Moscow · Russia",
+  scenes:[
+
+    /* —— Scene 1: THE SQUARE (blini / symbolise the sun / transforms into) —— */
+    {
+      title:"The Festive Square",
+      texts:[
+        "You arrive in Moscow during Maslenitsa week! The whole city <span class='vocab'>transforms into</span> a festive zone of bunting and samovars that <span class='vocab'>celebrates the end of winter</span>. Everywhere, stalls sell golden, round <span class='vocab'>traditional blini</span> — thin pancakes that <span class='vocab'>symbolise the sun</span> — with jam, honey and sour cream. Your stomach growls loudly. First decision?",
+        "Snow, music and the smell of butter: it is Maslenitsa in Moscow! For one week the city <span class='vocab'>transforms into</span> an open-air party that <span class='vocab'>celebrates the end of winter</span> and welcomes spring. A smiling cook points at a mountain of <span class='vocab'>traditional blini</span>: “They <span class='vocab'>symbolise the sun</span>,” she says. “Round, golden and warm!” Will you eat?"
+      ],
+      choices:[
+        { label:"Eat a stack of traditional blini with honey — the little golden pancakes that symbolise the sun.",
+          kind:"good", ef:{ e:10, v:15 },
+          fb:"Exactly right! Blini are round and golden like little suns, and eating them is the tastiest way to say goodbye to winter. Warm food restores your Energy — and the cook applauds your excellent choice." },
+        { label:"Ignore the stalls and wait for the famous “mock kidnap” show to begin.",
+          kind:"ok", ef:{ e:-15, v:-5 },
+          fb:"Mixed-up festivals! A mock kidnap — a pretend kidnapping — belongs to the pirate festival in England. While you wait for pirates who never come, you get colder, hungrier and a tiny bit bored." },
+        { label:"Ask around for the “scarecrow prize” — if scarecrows win competitions, maybe they taste good too?",
+          kind:"bad", lex:"raises money for local charities", ef:{ e:-10, v:-10 },
+          fb:"Er… scarecrows are straw dolls displayed at an English village festival to raise money for local charities — definitely not food! The pancake lady laughs for a full minute. Your Vibes dip." }
+      ]
+    },
+
+    /* —— Scene 2: THE COSTUME PARADE (bright idea / enter the competition) —— */
+    {
+      title:"The Costume Parade",
+      texts:[
+        "A sign in the square announces: “MASQUERADE MINI-PARADE — <span class='vocab'>enter the competition</span> and win the Golden Pancake medal!” Children are building costumes from ribbons, straw and golden paper. You need a <span class='vocab'>bright idea</span>, and quickly. What is your plan?",
+        "Suddenly, a stage announcement: a costume competition starts in twenty minutes, and everyone is invited to <span class='vocab'>enter the competition</span>! Feathers, ribbons and shiny fabrics fill the craft tables. A clever <span class='vocab'>bright idea</span> could win you the Golden Pancake medal. What do you do?"
+      ],
+      choices:[
+        { label:"Wrap yourself in gold ribbons and paper suns — your bright idea: you ARE the Sun, chasing winter away!",
+          kind:"good", ef:{ e:0, v:20 },
+          fb:"Bright idea indeed! A bright idea is a clever, smart one — and the judges agree completely. The crowd cheers for the walking Sun, and your Vibes blaze like a bonfire." },
+        { label:"Watch quietly in your winter coat. Joining in feels a bit embarrassing.",
+          kind:"ok", ef:{ e:0, v:-5 },
+          fb:"You stay warm, comfortable… and invisible. The parade is twice as fun from the inside. Small Vibes penalty for shyness — festival survivors take part!" },
+        { label:"Walk into the town hall building — if you must “enter the competition”, you should at least enter somewhere.",
+          kind:"bad", lex:"enter the competition", ef:{ e:0, v:-10 },
+          fb:"Careful! To enter the competition means to take part in it — you don’t “enter” a building. The security guard politely sends you back outside, and the parade goes on without you." }
+      ]
+    },
+
+    /* —— Scene 3: RANDOM ENCOUNTER (replayability — one of two) —— */
+    { pool:[
+      {
+        title:"The Charity Bazaar",
+        text:"Behind the craft stalls you discover a busy bazaar. A hand-painted banner reads: “All weekend we <span class='vocab'>raise money for local charities</span> — every rouble helps our town!” Handmade dolls, wooden spoons and knitted scarves cover the tables. A volunteer smiles and holds out a decorated donation box. What do you do?",
+        choices:[
+          { label:"Buy a handmade doll and drop extra coins into the donation box.",
+            kind:"good", ef:{ e:0, v:15 },
+            fb:"Beautiful! The festival raises money for local charities — it collects money to help people and projects in the local area. Good deeds give the warmest Vibes of all." },
+          { label:"Walk quickly past. Charity is kind of… awkward.",
+            kind:"ok", ef:{ e:0, v:-10 },
+            fb:"Your feet move on, but your Vibes sink. Raising money for local charities is a strong tradition at community festivals — walking past feels cold, even for winter." },
+          { label:"Get down on your knees and start lifting coins off the snowy ground — that is what “raise money” means, right?",
+            kind:"bad", lex:"raises money for local charities", ef:{ e:-15, v:-5 },
+            fb:"Oh no — “raise money” is an idiom: it means to COLLECT money for a cause, not to lift it up! Your knees are freezing, the volunteer is confused, and everyone learns a useful phrase today." }
+        ]
+      },
+      {
+        title:"The Folk Dance",
+        text:"Drums! Flutes! Traditional circle dances <span class='vocab'>take place</span> beside the main stage, and a <span class='vocab'>huge</span> crowd has already formed a moving, stomping ring around the musicians. An old lady in a flowery headscarf grabs your hand: “Come, come — dance with us!” Your legs are already tired. What do you choose?",
+        choices:[
+          { label:"Join the circle, copy the steps and dance two full rounds with the babushkas.",
+            kind:"good", ef:{ e:-5, v:15 },
+            fb:"Your feet tangle — then fly! Festival dances take place — that is, they happen — right here, and you are inside the moment. Dancing costs a little Energy but pays back a mountain of Vibes." },
+          { label:"Stand outside the circle and film everything on your phone until your fingers freeze.",
+            kind:"ok", ef:{ e:-15, v:5 },
+            fb:"Great video — frozen fingers. Twenty minutes standing in the icy wind drains your Energy. Survival tip for next time: dance first, film later!" },
+          { label:"Wait politely for the dancing to “take the place” of the food stalls so you can finally reach the blini table.",
+            kind:"bad", lex:"take place", ef:{ e:-5, v:-5 },
+            fb:"Words matter! Take place means to happen — the dances cannot physically move the stalls. While you wait, the pancakes get cold and the dancers wonder about the frozen statue nearby." }
+        ]
+      }
+    ]},
+
+    /* —— Scene 4: THE STREET QUIZ (synonyms & antonyms) —— */
+    {
+      title:"The Maslenitsa Quiz",
+      texts:[
+        "A quizmaster in a giant bear hat jumps onto a barrel: “The Maslenitsa English Challenge! Answer TRUE or FALSE and win honey sweets! Question: A <span class='vocab'>fake</span> beard and a <span class='vocab'>mock</span> kidnap use words with SIMILAR meanings — and <span class='vocab'>huge</span> is the opposite of <span class='vocab'>small</span>. True or false?”",
+        "A street quiz! The host waves cards in both hands: “One sweet for one true answer, friends! Listen carefully: <span class='vocab'>fake</span> and <span class='vocab'>mock</span> mean almost the same — and <span class='vocab'>huge</span> and <span class='vocab'>small</span> are opposites. TRUE or FALSE?”"
+      ],
+      choices:[
+        { label:"“TRUE!” — fake and mock are synonyms, and huge and small are antonyms. Easy sweets.",
+          kind:"good", ef:{ e:0, v:15 },
+          fb:"TRUE — well done! Fake and mock both mean “not real, pretend”, and huge (very big) is the antonym of small. The quizmaster drops honey sweets into your palm. Sweet victory." },
+        { label:"“Can I answer with a blini instead?” You dodge the question with a joke.",
+          kind:"ok", ef:{ e:0, v:-5 },
+          fb:"The crowd laughs — the quizmaster does not. “Half a sweet for half an answer!” Synonyms and antonyms are important festival survival tools, you know." },
+        { label:"“FALSE. Huge means very, very small. Everyone knows THAT.”",
+          kind:"bad", lex:"huge ≠ small", ef:{ e:0, v:-10 },
+          fb:"Ouch. Huge means very big — the opposite of small — and fake and mock are synonyms, so the correct answer was TRUE. The bear-hat quizmaster shakes his furry head sadly." }
+      ]
+    },
+
+    /* —— Scene 5: FAREWELL TO WINTER (big bonfire / beginning–ending) —— */
+    {
+      title:"Farewell to Winter",
+      texts:[
+        "On Sunday evening the whole town gathers for the goodbye ceremony. A giant straw figure of Lady Maslenitsa stands inside a <span class='vocab'>big bonfire</span>, burning brighter and brighter — a fiery symbol that winter is over. At the very <span class='vocab'>ending</span> of the week they will <span class='vocab'>let off fireworks</span>. What a moment! What do you do?",
+        "The last evening of Maslenitsa. Drums beat, torches glow, and flames climb the giant straw figure in a <span class='vocab'>big bonfire</span>. “This is the <span class='vocab'>ending</span> of the week — and of winter!” shouts the host. “Let the <span class='vocab'>fireworks</span> fly!” Your final festival decision?"
+      ],
+      choices:[
+        { label:"Join the countdown, shout “Goodbye, winter! Hello, spring!”, and watch the fireworks from the safe zone.",
+          kind:"good", ef:{ e:0, v:20 },
+          fb:"The bonfire roars, the sky blooms with colour. You understood everything: this is the ENDING, not the beginning — the grand finale of the week. Masterful vocabulary survival!" },
+        { label:"Push closer and closer to the bonfire to warm your hands — until a marshal moves you back.",
+          kind:"ok", ef:{ e:-10, v:5 },
+          fb:"Warm indeed! A big bonfire gives serious heat — far too serious up close. Marshals exist for a reason. Your eyebrows survive; your Energy does not." },
+        { label:"Head back to the hotel — this is clearly just the beginning of the festival. The best part starts tomorrow.",
+          kind:"bad", lex:"beginning ≠ ending", ef:{ e:-5, v:-15 },
+          fb:"Beginning — or ending? The bonfire and the fireworks mark the ENDING of Maslenitsa week. You walk away from the finale, and the echo of fireworks haunts your quiet hotel room." }
+      ]
+    }
+  ]
+};
+
+const PATHS = { splatfest:SPLATFEST, maslenitsa:MASLENITSA };
+
+/* ---------------- scene icons (inline SVG, no external assets) ---------- */
+const ICONS = {
+  fire:  "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'/></svg>",
+  sun:   "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='4'/><path d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/></svg>",
+  star:  "<svg viewBox='0 0 24 24' fill='currentColor'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>",
+  mask:  "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M8 14s1.5 2 4 2 4-2 4-2'/><line x1='9' y1='9' x2='9.01' y2='9'/><line x1='15' y1='9' x2='15.01' y2='9'/></svg>",
+  book:  "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/><path d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/></svg>",
+  check: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>",
+  warn:  "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>",
+  x:     "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg>",
+  trophy:"<svg viewBox='0 0 74 74' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M24 10h26v14a13 13 0 0 1-26 0V10z'/><path d='M24 13H12a12 12 0 0 0 12 12M50 13h12a12 12 0 0 1-12 12'/><path d='M37 37v9M28 58h18M30 46h14l2 12H28l2-12z'/><path d='M33 4l1.5 2.6L37 5l-1 2.7L38.5 9 36 8.6 34.5 11 33.8 8.4 31 8l2.6-1z' fill='currentColor' stroke='none'/></svg>",
+  moon:  "<svg viewBox='0 0 74 74' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M58 44A26 26 0 1 1 30 16a21 21 0 0 0 28 28z'/><path d='M52 12h7M55.5 8.5v7'/><path d='M62 20h5M64.5 17.5v5'/></svg>",
+  fail:  "<svg viewBox='0 0 74 74' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='37' cy='37' r='27'/><line x1='46' y1='28' x2='28' y2='46'/><line x1='28' y1='28' x2='46' y2='46'/></svg>",
+  hand:  "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/></svg>"
+};
+const SCENE_ICON_CYCLE = ["fire","sun","star","mask","book"];
+
+/* =======================================================================
+   GAME STATE
+   ======================================================================= */
+const state = {
+  name:"", pathKey:"", scenes:[], idx:0,
+  energy:100, vibes:20, clothes:"Clean",
+  strikes:0, good:0, ok:0, bad:0, helps:0,
+  review:[], flags:{}, pendingFail:null, busy:false
+};
+const BEST = { splatfest:0, maslenitsa:0 };   /* in-memory personal best */
+
+/* ---------------- DOM refs ---------------- */
+const el = {
+  screens:{ menu:$("#screen-menu"), game:$("#screen-game"), end:$("#screen-end") },
+  name:$("#player-name"), menuMsg:$("#menu-msg"),
+  btnStart:$("#btn-start"),
+  hudName:$("#hud-name"), hudPath:$("#hud-path"), hudAvatar:$("#hud-avatar"),
+  barE:$("#bar-energy"), valE:$("#val-energy"),
+  barV:$("#bar-vibes"),  valV:$("#val-vibes"),
+  pill:$("#pill-clothes"), valC:$("#val-clothes"),
+  strikes:$("#strike-dots"),
+  progress:$("#progress"),
+  num:$("#scene-num"), loc:$("#scene-loc"), title:$("#scene-title"),
+  icon:$("#scene-icon"), text:$("#scene-text"), skip:$("#skip-hint"),
+  choices:$("#choices"),
+  fb:$("#feedback"), fbTitle:$("#fb-title"), fbText:$("#fb-text"), fbChips:$("#fb-chips"),
+  btnNext:$("#btn-continue"),
+  endIcon:$("#end-icon"), endKicker:$("#end-kicker"), endTitle:$("#end-title"),
+  endMsg:$("#end-msg"), endE:$("#end-energy"), endV:$("#end-vibes"),
+  endC:$("#end-clothes"), endH:$("#end-helps"), endReview:$("#end-review"),
+  modal:$("#modal"), vocabList:$("#vocab-list"),
+  toast:$("#toast"), live:$("#aria-live"),
+  confetti:$("#confetti-layer")
+};
+
+let typeTimer = null;   /* active typewriter interval */
+let toastTimer = null;
+
+/* =======================================================================
+   SCREEN / UI PLUMBING
+   ======================================================================= */
+function showScreen(name){
+  Object.keys(el.screens).forEach(function(k){
+    el.screens[k].classList.toggle("active", k === name);
+  });
+  window.scrollTo(0, 0);
+}
+
+function announce(msg){ el.live.textContent = ""; el.live.textContent = msg; }
+
+function toast(msg){
+  el.toast.textContent = msg;
+  el.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.toast.classList.remove("show"); }, 2600);
+}
+
+/* ---------------- HUD updates ---------------- */
+function updateHUD(){
+  const e = clamp(state.energy, 0, 100);
+  const v = clamp(state.vibes, 0, 100);
+  el.barE.style.width = e + "%";
+  el.barV.style.width = v + "%";
+  el.barE.setAttribute("aria-valuenow", e);
+  el.barV.setAttribute("aria-valuenow", v);
+  el.valE.textContent = e + "%";
+  el.valV.textContent = v + "%";
+  el.barE.classList.toggle("low",  e <= 25);
+  el.barE.classList.toggle("mid",  e > 25 && e <= 50);
+
+  el.valC.textContent = state.clothes;
+  el.pill.classList.remove("clean","messy","ruined");
+  el.pill.classList.add(state.clothes.toLowerCase());
+
+  const dots = $$(".dot", el.strikes);
+  dots.forEach(function(d,i){ d.classList.toggle("hit", i < state.strikes); });
+}
+
+/* ---------------- progress dots ---------------- */
+function renderProgress(){
+  el.progress.innerHTML = "";
+  state.scenes.forEach(function(_, i){
+    const d = document.createElement("span");
+    d.className = "pdot" + (i < state.idx ? " done" : i === state.idx ? " now" : "");
+    el.progress.appendChild(d);
+  });
+}
+
+/* =======================================================================
+   TYPEWRITER — reveals text word by word while preserving <span> markup
+   ======================================================================= */
+function wrapWords(html){
+  return html.split(/(<[^>]+>)/g).map(function(tok){
+    if(tok.charAt(0) === "<") return tok;
+    return tok.replace(/(\S+)/g, "<span class='tw-w'>$1</span>");
+  }).join("");
+}
+
+function typeSceneText(html, onDone){
+  clearInterval(typeTimer);
+  el.text.innerHTML = "";
+  if(REDUCE){
+    el.text.innerHTML = html;
+    el.skip.classList.add("hidden");
+    onDone();
+    return;
+  }
+  el.text.innerHTML = wrapWords(html) + "<span class='caret'></span>";
+  el.skip.classList.remove("hidden");
+  const words = $$(".tw-w", el.text);
+  const caret = $(".caret", el.text);
+  let i = 0;
+  function finish(){
+    clearInterval(typeTimer); typeTimer = null;
+    words.forEach(function(w){ w.classList.add("on"); });
+    if(caret) caret.remove();
+    el.skip.classList.add("hidden");
+    onDone();
+  }
+  typeTimer = setInterval(function(){
+    if(i >= words.length){ finish(); return; }
+    /* reveal words in tiny batches so long scenes stay snappy */
+    const batch = 1;
+    for(let b = 0; b < batch && i < words.length; b++, i++){
+      words[i].classList.add("on");
+    }
+  }, 58);
+  /* click to skip */
+  el.text.onclick = function(){ if(typeTimer){ finish(); } };
+}
+
+/* =======================================================================
+   GAME FLOW
+   ======================================================================= */
+
+/* Resolve a path definition into a concrete run of scenes:
+   - pick 1 of 2 variants for the random-encounter slot
+   - pick 1 of 2 text versions for scripted scenes
+   - shuffle choice order so the correct answer moves around        */
+function buildRun(def){
+  return def.scenes.map(function(raw){
+    const base = raw.pool ? pick(raw.pool) : raw;
+    return {
+      title: base.title,
+      text: base.texts ? pick(base.texts) : base.text,
+      choices: shuffle(base.choices.slice())
+    };
+  });
+}
+
+function startGame(pathKey){
+  const def = PATHS[pathKey];
+  state.name = el.name.value.trim().slice(0, 18) || "Explorer";
+  state.pathKey = pathKey;
+  state.scenes = buildRun(def);
+  state.idx = 0;
+  state.energy = 100; state.vibes = 20; state.clothes = "Clean";
+  state.strikes = 0; state.good = 0; state.ok = 0; state.bad = 0;
+  state.helps = 0; state.review = []; state.flags = {}; state.pendingFail = null;
+
+  el.hudName.textContent = state.name;
+  el.hudPath.textContent = def.title + " · " + def.loc;
+  el.hudAvatar.textContent = state.name.charAt(0).toUpperCase();
+  el.loc.textContent = def.loc;
+
+  el.fb.classList.add("hidden");
+  updateHUD();
+  showScreen("game");
+  renderProgress();
+  renderScene();
+  announce("Welcome to " + def.title + ". Scene 1 begins.");
+}
+
+function renderScene(){
+  const scene = state.scenes[state.idx];
+  state.busy = true;
+
+  renderProgress();
+  el.num.textContent = "Scene " + (state.idx + 1) + " of " + state.scenes.length;
+  el.title.textContent = scene.title;
+  el.icon.innerHTML = ICONS[SCENE_ICON_CYCLE[state.idx % SCENE_ICON_CYCLE.length]];
+  el.choices.innerHTML = "";
+  el.fb.classList.add("hidden");
+  el.btnNext.disabled = false;
+
+  typeSceneText(scene.text, function(){ renderChoices(scene); });
+}
+
+function renderChoices(scene){
+  state.busy = false;
+  el.choices.innerHTML = "";
+  const letters = ["A","B","C"];
+  scene.choices.forEach(function(ch, i){
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice";
+    btn.innerHTML = "<span class='letter'>" + letters[i] + "</span><span>" + ch.label + "</span>";
+    btn.addEventListener("click", function(){ onChoice(ch, btn); });
+    btn.style.transitionDelay = (i * 90) + "ms";
+    el.choices.appendChild(btn);
+    requestAnimationFrame(function(){ btn.classList.add("in"); });
+  });
+  announce("Choose A, B or C.");
+}
+
+/* keyboard shortcuts: A / B / C or 1 / 2 / 3 */
+document.addEventListener("keydown", function(ev){
+  if(el.modal.classList.contains("open")){ if(ev.key === "Escape") closeModal(); return; }
+  if(!el.screens.game.classList.contains("active")) return;
+  if(!el.fb.classList.contains("hidden")){
+    if(ev.key === "Enter"){ el.btnNext.click(); }
+    return;
+  }
+  if(state.busy) return;
+  const map = { "a":0, "b":1, "c":2, "1":0, "2":1, "3":2 };
+  const k = ev.key.toLowerCase();
+  if(map[k] !== undefined){
+    const btns = $$(".choice", el.choices);
+    if(btns[map[k]]) btns[map[k]].click();
+  }
+});
+
+/* =======================================================================
+   CHOICE RESOLUTION & EFFECTS
+   ======================================================================= */
+function onChoice(choice, btn){
+  if(state.busy) return;
+  state.busy = true;
+
+  /* lock all buttons & mark the picked one */
+  const btns = $$(".choice", el.choices);
+  btns.forEach(function(b){
+    b.disabled = true;
+    if(b !== btn) b.classList.add("dim");
+  });
+  btn.classList.add("picked-" + choice.kind);
+
+  /* conditional choice (flag-dependent outcome) */
+  let ef = choice.ef, fb = choice.fb;
+  if(choice.cond){
+    const has = !!state.flags[choice.cond.flag];
+    const branch = has ? choice.cond.then : choice.cond.else;
+    ef = branch.ef; fb = branch.fb;
+  }
+
+  /* apply effects */
+  state.energy = clamp(state.energy + (ef.e || 0), 0, 100);
+  state.vibes  = clamp(state.vibes  + (ef.v || 0), 0, 100);
+  if(ef.clothes) state.clothes = ef.clothes;
+  if(ef.flag)    state.flags[ef.flag] = true;
+
+  if(choice.kind === "good") state.good++;
+  if(choice.kind === "ok")   state.ok++;
+  if(choice.kind === "bad"){
+    state.bad++;
+    if(choice.lex){
+      state.strikes = clamp(state.strikes + 1, 0, 3);
+      if(state.review.indexOf(choice.lex) === -1) state.review.push(choice.lex);
+    }
+  }
+  updateHUD();
+
+  /* set fail flags (checked on Continue) */
+  state.pendingFail =
+    state.energy <= 0 ? "exhausted" :
+    state.strikes >= 3 ? "disqualified" : null;
+
+  showFeedback(choice.kind, ef, fb, choice);
+}
+
+function showFeedback(kind, ef, fb, choice){
+  const meta = {
+    good:{ cls:"good", icon:ICONS.check, label:"Smart survivor!" },
+    ok:  { cls:"ok",   icon:ICONS.warn,  label:"Risky move…" },
+    bad: { cls:"bad",  icon:ICONS.x,     label: choice.lex ? "Vocabulary mix-up!" : "Dangerous move!" }
+  }[kind];
+
+  el.fb.className = "feedback " + meta.cls;
+  el.fbTitle.innerHTML = meta.icon + "<span>" + meta.label + "</span>";
+  el.fbText.textContent = fb;
+
+  /* stat delta chips */
+  el.fbChips.innerHTML = "";
+  function chip(txt, cls){
+    const s = document.createElement("span");
+    s.className = "dchip " + cls; s.textContent = txt;
+    el.fbChips.appendChild(s);
+  }
+  if(ef.e > 0) chip("+" + ef.e + " Energy", "up");
+  if(ef.e < 0) chip("−" + Math.abs(ef.e) + " Energy", "down");
+  if(ef.v > 0) chip("+" + ef.v + " Vibes", "up");
+  if(ef.v < 0) chip("−" + Math.abs(ef.v) + " Vibes", "down");
+  if(ef.clothes) chip("Clothes → " + ef.clothes, "info");
+  if(choice.lex) chip("Mix-up: " + choice.lex + " (" + state.strikes + "/3)", "down");
+
+  el.fb.classList.remove("hidden");
+  el.fb.focus({ preventScroll:true });
+  el.btnNext.textContent = lastScene() && !state.pendingFail ? "See the Results " : "Continue ";
+  el.btnNext.insertAdjacentHTML("beforeend", "<svg viewBox='0 0 24 24' width='19' height='19' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><line x1='5' y1='12' x2='19' y2='12'/><polyline points='12 5 19 12 12 19'/></svg>");
+  el.fb.scrollIntoView({ behavior: REDUCE ? "auto" : "smooth", block:"nearest" });
+  announce(meta.label + " " + fb);
+}
+
+function lastScene(){ return state.idx >= state.scenes.length - 1; }
+
+el.btnNext.addEventListener("click", function(){
+  if(state.pendingFail){ endGame(state.pendingFail); return; }
+  if(lastScene()){ endGame("finished"); return; }
+  state.idx++;
+  renderScene();
+});
+
+/* =======================================================================
+   ENDINGS
+   ======================================================================= */
+function endGame(reason){
+  clearInterval(typeTimer);
+
+  /* choose the ending */
+  let ending;
+  if(reason === "exhausted"){
+    ending = {
+      cls:"fail", icon:ICONS.fail, kicker:"energy 0% — game over", title:"FESTIVAL FAIL",
+      msg:"<b>" + esc(state.name) + "</b> sank onto the nearest bench and fell fast asleep in the middle of the festival. Note to self: survivors watch their Energy bar — food, rest and smart choices keep it high!"
+    };
+  } else if(reason === "disqualified"){
+    ending = {
+      cls:"fail", icon:ICONS.fail, kicker:"3 vocabulary mix-ups — disqualified", title:"FESTIVAL FAIL",
+      msg:"Three big vocabulary mix-ups! The Festival Survival Committee gently takes <b>" + esc(state.name) + "</b> back to the phrasebook. Check the Notebook below — master those words and come back stronger!"
+    };
+  } else if(state.vibes >= 65 && state.energy >= 45){
+    ending = {
+      cls:"legend", icon:ICONS.trophy, kicker:"high vibes · high energy", title:"FESTIVAL LEGEND",
+      msg:"Unbelievable, <b>" + esc(state.name) + "</b>! You read every situation like a pro, used the vocabulary perfectly and kept your Energy high. Locals will tell stories about you until next year’s festival!"
+    };
+  } else {
+    const reasonTxt = state.energy < 45
+      ? "You survived… barely! Your Energy bar is flashing red, and you’ll sleep for a week — but you made it to the end."
+      : "You stayed fresh, but you played it too safe — the festival’s best moments passed you by. Next time, join the action!";
+    ending = {
+      cls:"tired", icon:ICONS.moon, kicker:"survived — just about", title:"TIRED TOURIST",
+      msg:"<b>" + esc(state.name) + "</b> reached the end of " + PATHS[state.pathKey].title + ". " + reasonTxt
+    };
+  }
+
+  /* personal best */
+  if(state.vibes > BEST[state.pathKey]) BEST[state.pathKey] = state.vibes;
+
+  /* render */
+  el.endIcon.className = "end-icon " + ending.cls;
+  el.endIcon.innerHTML = ending.icon;
+  el.endKicker.textContent = ending.kicker;
+  el.endTitle.className = "end-title " + ending.cls;
+  el.endTitle.textContent = ending.title;
+  el.endMsg.innerHTML = ending.msg;
+  el.endE.textContent = clamp(state.energy,0,100) + "%";
+  el.endV.textContent = clamp(state.vibes,0,100) + "%";
+  el.endC.textContent = state.clothes;
+  el.endH.textContent = state.helps;
+
+  if(state.review.length){
+    el.endReview.innerHTML = "";
+    state.review.forEach(function(w){
+      const s = document.createElement("span");
+      s.className = "rword"; s.textContent = w;
+      el.endReview.appendChild(s);
+    });
+  } else {
+    el.endReview.innerHTML = "<span class='allgood'>Nothing to review — your vocabulary radar was perfect!</span>";
+  }
+
+  showScreen("end");
+  announce("Game over: " + ending.title);
+  if(ending.cls === "legend") launchConfetti();
+}
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------------- confetti (pure JS/CSS particles, no images) ---------- */
+function launchConfetti(){
+  if(REDUCE) return;
+  const colors = ["#ff5a5f","#ffb93e","#2dd4bf","#8a7bff","#ffd76e","#ff8fb1"];
+  for(let i = 0; i < 90; i++){
+    const c = document.createElement("span");
+    c.className = "confetti";
+    const size = 6 + Math.random() * 8;
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.width = size + "px";
+    c.style.height = (size * (0.5 + Math.random())) + "px";
+    c.style.background = pick(colors);
+    c.style.animationDuration = (2.2 + Math.random() * 2.2) + "s";
+    c.style.animationDelay = (Math.random() * 0.9) + "s";
+    el.confetti.appendChild(c);
+  }
+  setTimeout(function(){ el.confetti.innerHTML = ""; }, 6000);
+}
+
+/* ---------------- end-screen buttons ---------------- */
+$("#btn-again").addEventListener("click", function(){
+  /* Play Again → full reset, back to the menu */
+  el.fb.classList.add("hidden");
+  el.menuMsg.textContent = "";
+  refreshBestBadges();
+  showScreen("menu");
+  el.screens.menu.scrollIntoView();
+});
+$("#btn-other").addEventListener("click", function(){
+  const other = state.pathKey === "splatfest" ? "maslenitsa" : "splatfest";
+  selectPath(other);
+  refreshBestBadges();
+  showScreen("menu");
+  toast("Now try: " + PATHS[other].title);
+});
+
+function refreshBestBadges(){
+  Object.keys(BEST).forEach(function(k){
+    const badge = $("#best-" + k);
+    if(BEST[k] > 0){
+      badge.hidden = false;
+      badge.textContent = "★ Personal best vibes: " + BEST[k] + "%";
+    }
+  });
+}
+
+/* =======================================================================
+   MENU INTERACTIONS
+   ======================================================================= */
+let pendingPath = null;
+
+function selectPath(key){
+  pendingPath = key;
+  ["splatfest","maslenitsa"].forEach(function(k){
+    const card = $("#card-" + k);
+    const on = k === key;
+    card.classList.toggle("selected", on);
+    card.setAttribute("aria-checked", on ? "true" : "false");
+  });
+  el.menuMsg.textContent = "";
+}
+$("#card-splatfest").addEventListener("click", function(){ selectPath("splatfest"); });
+$("#card-maslenitsa").addEventListener("click", function(){ selectPath("maslenitsa"); });
+
+el.name.addEventListener("keydown", function(ev){
+  if(ev.key === "Enter") el.btnStart.click();
+  el.menuMsg.textContent = "";
+});
+
+el.btnStart.addEventListener("click", function(){
+  const nm = el.name.value.trim();
+  if(nm.length < 2){
+    el.menuMsg.textContent = "Type your name first (at least 2 letters) — legends need names!";
+    el.name.classList.add("shake");
+    setTimeout(function(){ el.name.classList.remove("shake"); }, 500);
+    el.name.focus();
+    return;
+  }
+  if(!pendingPath){
+    el.menuMsg.textContent = "Choose a festival: Splatfest in Spain or Maslenitsa in Russia.";
+    return;
+  }
+  startGame(pendingPath);
+});
+
+/* =======================================================================
+   VOCABULARY HELP MODAL
+   ======================================================================= */
+let lastFocus = null;
+
+function buildVocabList(){
+  el.vocabList.innerHTML = "";
+  VOCAB.forEach(function(v){
+    const item = document.createElement("div");
+    item.className = "vocab-item";
+    const dt = document.createElement("dt"); dt.textContent = v.t;
+    const dd = document.createElement("dd");
+    dd.textContent = v.d;
+    const ex = document.createElement("span");
+    ex.className = "ex"; ex.textContent = "“" + v.ex + "”";
+    dd.appendChild(ex);
+    item.appendChild(dt); item.appendChild(dd);
+    el.vocabList.appendChild(item);
+  });
+}
+
+function openModal(){
+  lastFocus = document.activeElement;
+  el.modal.classList.add("open");
+  $("#modal-close").focus();
+  /* price of peeking — only while a game is running */
+  if(el.screens.game.classList.contains("active")){
+    state.helps++;
+    state.vibes = clamp(state.vibes - 5, 0, 100);
+    updateHUD();
+    toast("You peeked at the glossary — minus 5 Vibes!");
+    announce("Vocabulary help opened. Minus 5 vibes.");
+  }
+}
+function closeModal(){
+  el.modal.classList.remove("open");
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+}
+$("#btn-vocab").addEventListener("click", openModal);
+$("#btn-menu-vocab").addEventListener("click", openModal);
+$("#modal-close").addEventListener("click", closeModal);
+el.modal.addEventListener("click", function(ev){
+  if(ev.target === el.modal) closeModal();
+});
+
+/* ---------------- boot ---------------- */
+buildVocabList();
+updateHUD();
+refreshBestBadges();
+
+})();
+</script>
+</body>
+</html>
