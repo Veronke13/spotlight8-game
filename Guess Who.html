@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NOIR: The Eight Suspects — Spotlight 8 · Lesson 1d</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NOIR: THE EIGHT SUSPECTS — core visual system
+   Font mandate: monospace ('Courier New') + typewriter display
+   ============================================================ */
+:root{
+  --ink:#0a0a0c;
+  --paper:#d9c9a0;
+  --amber:#e8b34b;
+  --blood:#b5313a;
+  --green:#57a773;
+  --dim:#8a8578;
+  --panel:rgba(12,12,14,.92);
+}
+*{ -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:'Courier New', Courier, monospace;
+  overflow-x:hidden;
+  touch-action:manipulation;
+}
+.font-type{ font-family:'Special Elite','Courier New',monospace; }
+.hidden{ display:none !important; }
+
+/* ---------- film grain + vignette atmosphere ---------- */
+#fx-grain{
+  position:fixed; inset:-50%; z-index:60; pointer-events:none; opacity:.07;
+  background-image:repeating-conic-gradient(#000 0 .0001%, #fff .0002% .0003%);
+  background-size:170px 170px;
+  animation:grain 700ms steps(6) infinite;
+}
+@keyframes grain{
+  0%{transform:translate(0,0)} 20%{transform:translate(-4%,3%)}
+  40%{transform:translate(3%,-5%)} 60%{transform:translate(-5%,-2%)}
+  80%{transform:translate(4%,4%)} 100%{transform:translate(0,0)}
+}
+#fx-vignette{
+  position:fixed; inset:0; z-index:59; pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%);
+}
+
+/* ---------- screens ---------- */
+.screen{ position:relative; min-height:100dvh; width:100%; }
+.bg-cover{ background-size:cover; background-position:center; background-color:#0a0a0c; }
+
+/* ---------- boot ---------- */
+#screen-boot{ display:flex; align-items:center; justify-content:center; background:#070708; }
+.boot-box{ width:min(420px,86vw); text-align:center; }
+.boot-bar{ height:10px; border:1px solid var(--amber); margin-top:18px; padding:2px; }
+.boot-fill{ height:100%; width:0%; background:var(--amber); transition:width .25s ease; }
+.boot-log{ font-size:10px; letter-spacing:.15em; color:var(--dim); margin-top:12px; min-height:2.6em; text-transform:uppercase; }
+
+/* ---------- menu ---------- */
+#screen-menu{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
+.menu-shade{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,5,6,.55), rgba(5,5,6,.82)); }
+.menu-inner{ position:relative; z-index:2; max-width:660px; display:flex; flex-direction:column; align-items:center; }
+.case-tag{ font-size:11px; letter-spacing:.35em; color:var(--amber); text-transform:uppercase; border:1px solid rgba(232,179,75,.5); padding:6px 14px; }
+.game-title{
+  font-family:'Special Elite','Courier New',monospace;
+  font-size:clamp(2.4rem, 8vw, 4.6rem);
+  line-height:1; margin:18px 0 4px; color:#f2e7c9;
+  text-shadow:0 0 18px rgba(232,179,75,.25), 0 4px 0 #000;
+  animation:flicker 4.5s infinite;
+}
+@keyframes flicker{ 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.55} 94%{opacity:1} 96%{opacity:.7} 97%{opacity:1} }
+.game-sub{ font-size:clamp(.7rem,2.4vw,.9rem); letter-spacing:.28em; color:var(--amber); text-transform:uppercase; }
+.menu-brief{
+  margin:22px auto 8px; font-size:clamp(.8rem,2.6vw,.95rem); line-height:1.7; color:#cfc5a6;
+  background:rgba(8,8,10,.72); border:1px solid rgba(217,201,160,.22); padding:16px 18px; text-align:left;
+}
+.menu-brief b{ color:var(--amber); font-weight:700; }
+.rules-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; width:100%; margin:14px 0 22px; }
+.rule-chip{ border:1px dashed rgba(217,201,160,.3); padding:8px 10px; font-size:10.5px; letter-spacing:.08em; color:#bcb096; text-transform:uppercase; background:rgba(0,0,0,.45); }
+.rule-chip b{ display:block; color:var(--amber); font-size:12px; margin-bottom:2px; }
+.btn-img{ position:relative; border:none; background:transparent; cursor:pointer; padding:0; transition:transform .15s ease, filter .2s ease; }
+.btn-img:hover{ transform:scale(1.04); filter:brightness(1.12); }
+.btn-img:active{ transform:scale(.96); }
+.btn-img .btn-label{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Special Elite','Courier New',monospace; color:#1b130a;
+  font-size:clamp(.85rem,3vw,1.15rem); letter-spacing:.14em; text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(255,240,200,.45); pointer-events:none; padding:0 14px; text-align:center; line-height:1.15;
+}
+#btn-start img{ height:clamp(96px, 18vw, 132px); width:auto; display:block; }
+
+/* ---------- HUD ---------- */
+#hud{
+  position:sticky; top:0; z-index:30;
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:8px;
+  padding:8px 10px; background:rgba(6,6,8,.92);
+  border-bottom:2px solid rgba(232,179,75,.4);
+  backdrop-filter:blur(4px);
+}
+.hud-id{ display:flex; flex-direction:column; justify-content:center; padding:0 8px; }
+.hud-id .t1{ font-size:10px; letter-spacing:.3em; color:var(--dim); text-transform:uppercase; }
+.hud-id .t2{ font-size:12px; letter-spacing:.12em; color:var(--amber); text-transform:uppercase; }
+.hud-stat{
+  display:flex; align-items:center; gap:8px; padding:4px 10px;
+  border:1px solid rgba(217,201,160,.25); background:rgba(0,0,0,.5); min-width:86px;
+}
+.hud-stat img{ width:30px; height:30px; object-fit:contain; }
+.hud-stat .lab{ font-size:9px; letter-spacing:.22em; color:var(--dim); text-transform:uppercase; }
+.hud-stat .val{ font-family:'Special Elite',monospace; font-size:20px; line-height:1; color:#f2e7c9; }
+.hud-stat.danger .val{ color:var(--blood); animation:pulse .9s infinite; }
+@keyframes pulse{ 50%{opacity:.45} }
+#hud-status{
+  display:flex; align-items:center; justify-content:center; padding:4px 14px; margin-left:auto;
+  border:1px solid var(--amber); color:var(--amber); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+}
+body.accuse #hud-status{ border-color:var(--blood); color:#ffd7da; background:rgba(181,49,58,.25); animation:pulse 1.1s infinite; }
+.hud-actions{ display:flex; gap:8px; }
+.dock-btn{
+  position:relative; width:86px; border:1px solid rgba(217,201,160,.25); background:rgba(0,0,0,.5);
+  color:var(--paper); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:5px 4px 6px; transition:filter .15s ease, transform .1s ease;
+}
+.dock-btn:active{ transform:scale(.95); }
+.dock-btn img{ width:38px; height:38px; object-fit:contain; pointer-events:none; }
+.dock-btn .cap{ font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:#cfc5a6; text-align:center; line-height:1.25; pointer-events:none; }
+.dock-btn:hover{ filter:brightness(1.2); }
+body.accuse #btn-folder{ filter:grayscale(1) brightness(.5); pointer-events:none; }
+#btn-warrant.armed{ border-color:var(--blood); background:rgba(181,49,58,.28); }
+#btn-mute{ width:44px; }
+#btn-mute i, #btn-mute svg{ width:20px; height:20px; color:#cfc5a6; }
+
+/* ---------- board layout ---------- */
+#board-wrap{ max-width:1360px; margin:0 auto; padding:14px 12px 40px; display:grid; gap:14px; grid-template-columns:1fr; }
+@media (min-width:980px){ #board-wrap{ grid-template-columns:minmax(0,1fr) 330px; } }
+
+/* ---------- suspect cards ---------- */
+#cards-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); }
+.suspect-card{ perspective:1100px; cursor:pointer; position:relative; }
+.card-inner{
+  position:relative; width:100%; aspect-ratio:4/5;
+  transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.75,.25,1.05);
+}
+.suspect-card.excluded{ cursor:pointer; }
+.suspect-card.excluded .card-inner{ transform:rotateY(180deg); }
+.card-face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  overflow:hidden; border:1px solid rgba(217,201,160,.35); background:#101013;
+  box-shadow:0 10px 24px rgba(0,0,0,.55);
+}
+.card-front img.portrait{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.85) contrast(1.05); }
+.card-front .shade{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 32%, transparent 58%, rgba(0,0,0,.9) 100%); }
+.file-no{ position:absolute; top:6px; left:8px; font-size:9px; letter-spacing:.22em; color:rgba(242,231,201,.85); text-transform:uppercase; }
+.name-plate{
+  position:absolute; left:0; right:0; bottom:0; padding:7px 8px 8px;
+  font-family:'Special Elite',monospace; font-size:clamp(.72rem, 1.6vw, .92rem); letter-spacing:.06em;
+  color:#f2e7c9; text-transform:uppercase; text-align:center; line-height:1.15;
+}
+.intel-row{ position:absolute; left:0; right:0; bottom:34px; display:flex; flex-wrap:wrap; gap:3px; justify-content:center; padding:0 6px; }
+.intel-chip{
+  font-size:8.5px; letter-spacing:.05em; padding:2px 5px; color:#0f0f10; background:var(--amber);
+  text-transform:uppercase; font-weight:700; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.card-back{ transform:rotateY(180deg); background:#141416; }
+.card-back img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9; }
+.stamp{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-14deg);
+  border:3px solid var(--blood); color:#ff5d67; padding:6px 12px;
+  font-family:'Special Elite',monospace; font-size:clamp(.8rem,2vw,1.05rem); letter-spacing:.2em; text-transform:uppercase;
+  background:rgba(20,0,0,.55); text-shadow:0 0 8px rgba(181,49,58,.6); white-space:nowrap;
+}
+.card-veil{ position:absolute; inset:0; z-index:5; pointer-events:none; opacity:0; transition:opacity .25s ease; display:flex; align-items:center; justify-content:center; }
+.cc-mark{ font-family:'Special Elite',monospace; font-size:26px; font-weight:700; letter-spacing:.1em; }
+.suspect-card.cc-out .card-veil{ opacity:1; background:rgba(181,49,58,.34); box-shadow:inset 0 0 0 2px var(--blood); }
+.suspect-card.cc-out .cc-mark{ color:#ff6b74; }
+.suspect-card.cc-in .card-veil{ opacity:1; background:rgba(87,167,115,.16); box-shadow:inset 0 0 0 2px var(--green); }
+.suspect-card.cc-in .cc-mark{ color:var(--green); font-size:15px; padding:4px 8px; border:1px solid var(--green); background:rgba(0,0,0,.55); }
+body.accuse .suspect-card:not(.excluded){ animation:target 1.2s infinite; }
+@keyframes target{ 0%,100%{filter:none} 50%{filter:drop-shadow(0 0 10px rgba(181,49,58,.85)); } }
+body.accuse .suspect-card:not(.excluded):hover{ outline:2px solid var(--blood); }
+.suspect-card:not(.excluded):hover .card-inner{ transform:translateY(-4px); }
+.suspect-card.excluded:hover .card-inner{ transform:rotateY(180deg) translateY(-4px); }
+.img-err{ background:repeating-linear-gradient(45deg,#17171a,#17171a 8px,#101013 8px,#101013 16px); }
+
+/* ---------- evidence panel ---------- */
+#evidence-panel{
+  border:1px solid rgba(217,201,160,.3); background:rgba(8,8,10,.78); padding:12px;
+  align-self:start; position:sticky; top:86px;
+}
+@media (max-width:979px){ #evidence-panel{ position:static; } }
+.ev-head{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px dashed rgba(217,201,160,.3); padding-bottom:8px; margin-bottom:10px; }
+.ev-head .t{ font-size:11px; letter-spacing:.3em; color:var(--amber); text-transform:uppercase; }
+.ev-head .c{ font-size:10px; color:var(--dim); letter-spacing:.14em; }
+.ev-hint{ font-size:9.5px; letter-spacing:.08em; color:var(--dim); text-transform:uppercase; margin:0 0 10px; line-height:1.5; }
+#slots{ display:flex; flex-wrap:wrap; gap:10px; }
+.slot-empty{
+  width:calc(50% - 5px); aspect-ratio:1/1; border:1px dashed rgba(217,201,160,.28);
+  display:flex; align-items:center; justify-content:center; font-size:9px; letter-spacing:.2em; color:rgba(138,133,120,.6); text-transform:uppercase;
+}
+.note{
+  position:relative; width:calc(50% - 5px); aspect-ratio:1/1; background-size:cover; background-position:center;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; padding:0;
+  animation:pin .45s cubic-bezier(.2,1.4,.4,1); transition:transform .15s ease, filter .15s ease;
+}
+.note:hover{ filter:brightness(1.06); }
+.note.active{ outline:2px solid var(--amber); outline-offset:2px; }
+.note p{
+  margin:0; padding:14% 13% 16%; font-size:clamp(8.5px, 1.4vmin, 10.5px); line-height:1.35; color:#241c10;
+  font-weight:700; text-align:center; letter-spacing:.01em;
+}
+.note .pin{ position:absolute; top:4%; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #ff8a8f, var(--blood)); box-shadow:0 2px 3px rgba(0,0,0,.5); }
+@keyframes pin{ 0%{ transform:translateY(-14px) rotate(6deg); opacity:0 } 100%{ transform:translateY(0) rotate(var(--tilt,0deg)); opacity:1 } }
+
+/* ---------- modals ---------- */
+.modal-veil{
+  position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center;
+  background:rgba(4,4,5,.78); backdrop-filter:blur(3px); padding:14px;
+  animation:fadein .18s ease;
+}
+@keyframes fadein{ from{opacity:0} to{opacity:1} }
+.dossier{
+  width:min(560px, 96vw); max-height:92dvh; overflow-y:auto;
+  background:linear-gradient(160deg, #17161a, #0d0d10); border:1px solid rgba(232,179,75,.4);
+  box-shadow:0 30px 80px rgba(0,0,0,.8); padding:16px;
+}
+.dossier-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; border-bottom:1px dashed rgba(217,201,160,.3); padding-bottom:10px; }
+.dossier-head h3{ margin:0; font-family:'Special Elite',monospace; color:#f2e7c9; text-transform:uppercase; font-size:clamp(1.05rem,3.4vw,1.4rem); letter-spacing:.05em; }
+.dossier-head .sub{ font-size:9.5px; letter-spacing:.24em; color:var(--dim); text-transform:uppercase; margin-top:4px; }
+.x-btn{ background:none; border:1px solid rgba(217,201,160,.35); color:var(--paper); width:34px; height:34px; cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; }
+.x-btn:hover{ border-color:var(--blood); color:#ff8a8f; }
+.dossier-body{ display:grid; grid-template-columns:132px 1fr; gap:14px; margin-top:14px; }
+@media (max-width:520px){ .dossier-body{ grid-template-columns:1fr; } }
+.dossier-photo{ position:relative; border:1px solid rgba(217,201,160,.35); aspect-ratio:4/5; overflow:hidden; background:#101013; }
+.dossier-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.85); }
+.dossier-photo .cur{ position:absolute; top:0; right:0; bottom:0; width:2px; background:var(--amber); animation:scan 1.6s linear infinite; opacity:.7; }
+@keyframes scan{ 0%{top:-100%} 100%{top:100%} }
+.intel-list{ display:flex; flex-direction:column; gap:6px; min-height:120px; }
+.intel-item{
+  display:flex; gap:8px; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  border:1px solid rgba(217,201,160,.18); padding:6px 8px; background:rgba(0,0,0,.4); animation:fadein .3s ease;
+}
+.intel-item b{ color:var(--amber); min-width:86px; font-weight:700; }
+.intel-none{ font-size:10px; color:var(--dim); letter-spacing:.15em; text-transform:uppercase; line-height:1.6; }
+.intel-flash{ font-size:10px; color:var(--green); letter-spacing:.22em; text-transform:uppercase; margin-top:8px; min-height:14px; }
+.dossier-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.act-btn{
+  cursor:pointer; border:1px solid var(--amber); background:rgba(232,179,75,.08); color:#f2e7c9;
+  padding:12px 8px; text-align:center; font-family:'Special Elite',monospace; letter-spacing:.1em; text-transform:uppercase; font-size:13px;
+  transition:background .15s ease, transform .1s ease; line-height:1.3;
+}
+.act-btn small{ display:block; font-family:'Courier New',monospace; font-size:9px; letter-spacing:.2em; color:var(--dim); margin-top:4px; }
+.act-btn:hover{ background:rgba(232,179,75,.2); }
+.act-btn:active{ transform:scale(.97); }
+.act-btn.red{ border-color:var(--blood); background:rgba(181,49,58,.12); }
+.act-btn.red:hover{ background:rgba(181,49,58,.28); }
+.act-btn.green{ border-color:var(--green); background:rgba(87,167,115,.1); }
+.act-btn:disabled{ opacity:.4; pointer-events:none; }
+
+/* ---------- end screen ---------- */
+.end-box{ width:min(620px,96vw); max-height:94dvh; overflow-y:auto; text-align:center; background:linear-gradient(170deg,#141318,#0b0b0e); border:1px solid rgba(217,201,160,.35); padding:22px 18px 26px; box-shadow:0 30px 90px rgba(0,0,0,.85); }
+.end-stamp{
+  display:inline-block; font-family:'Special Elite',monospace; text-transform:uppercase; letter-spacing:.18em;
+  font-size:clamp(1.5rem,6vw,2.4rem); padding:8px 18px; transform:rotate(-3deg);
+  animation:stampin .5s cubic-bezier(.2,1.6,.4,1) both;
+}
+@keyframes stampin{ 0%{ transform:scale(2.4) rotate(-14deg); opacity:0 } 100%{ transform:scale(1) rotate(-3deg); opacity:1 } }
+.end-win .end-stamp{ border:4px solid var(--green); color:var(--green); text-shadow:0 0 14px rgba(87,167,115,.5); }
+.end-lose .end-stamp{ border:4px solid var(--blood); color:#ff5d67; text-shadow:0 0 14px rgba(181,49,58,.5); }
+.end-msg{ font-size:clamp(.8rem,2.6vw,.95rem); line-height:1.7; color:#cfc5a6; margin:14px auto 4px; max-width:480px; }
+.end-msg b{ color:var(--amber); }
+.culprit-reveal{ width:132px; aspect-ratio:4/5; margin:14px auto 4px; border:1px solid rgba(217,201,160,.4); overflow:hidden; position:relative; }
+.culprit-reveal img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.culprit-name{ font-family:'Special Elite',monospace; text-transform:uppercase; letter-spacing:.1em; color:#f2e7c9; margin-top:8px; }
+.stats-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:8px; margin:16px 0 18px; }
+.stat-cell{ border:1px dashed rgba(217,201,160,.3); padding:8px 6px; }
+.stat-cell .v{ font-family:'Special Elite',monospace; font-size:20px; color:var(--amber); }
+.stat-cell .k{ font-size:8.5px; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; margin-top:3px; }
+#btn-restart img{ height:72px; width:auto; display:block; }
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px); z-index:90;
+  background:rgba(8,8,10,.95); border:1px solid var(--blood); color:#ffd7da;
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:10px 18px;
+  opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; text-align:center; max-width:88vw;
+}
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+#toast.ok{ border-color:var(--green); color:#c9ecd4; }
+
+/* accuse banner */
+#accuse-banner{
+  position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:40;
+  background:rgba(181,49,58,.92); color:#fff; border:1px solid #ff8a8f;
+  padding:10px 16px; font-size:clamp(9px,2.4vw,11px); letter-spacing:.2em; text-transform:uppercase; text-align:center;
+  animation:pulse 1.1s infinite; pointer-events:none; max-width:92vw;
+}
+.board-shade{ position:fixed; inset:0; z-index:-1; background:linear-gradient(180deg, rgba(5,5,6,.72), rgba(5,5,6,.88)); }
+</style>
+</head>
+<body>
+<div id="fx-vignette"></div>
+<div id="fx-grain"></div>
+
+<!-- ============ BOOT / ASSET PARSER SCREEN ============ -->
+<section id="screen-boot" class="screen">
+  <div class="boot-box">
+    <div class="case-tag">SPOTLIGHT 8 · LESSON 1D</div>
+    <h1 class="font-type" style="font-size:clamp(1.2rem,5vw,1.8rem); margin:16px 0 0; color:#f2e7c9;">CASE FILE N°8</h1>
+    <p style="font-size:10px; letter-spacing:.3em; color:var(--dim); text-transform:uppercase; margin:8px 0 0;">Parsing asset manifest…</p>
+    <div class="boot-bar"><div class="boot-fill" id="boot-fill"></div></div>
+    <div class="boot-log" id="boot-log">ESTABLISHING SECURE LINK</div>
+  </div>
+</section>
+
+<!-- ============ START MENU ============ -->
+<section id="screen-menu" class="screen bg-cover hidden">
+  <div class="menu-shade"></div>
+  <div class="menu-inner">
+    <div class="case-tag">CASE FILE N°8 — “THE GALLERY VANISHING”</div>
+    <h1 class="game-title">THE EIGHT SUSPECTS</h1>
+    <div class="game-sub">A noir deduction game · Appearance &amp; Character</div>
+    <div class="menu-brief">
+      Detective, a priceless portrait vanished from the City Gallery. <b>Eight suspects</b>, one culprit.
+      Open the <b>Clue File</b> (−1 energy) to collect witness statements, <b>interrogate</b> suspects (−2 energy)
+      to verify age, build, hair, eyes, personality and style. <b>Cross-check</b> notes against the board,
+      <b>exclude</b> the innocent — then serve the <b>Arrest Warrant</b> before your energy or the clock runs out.
+    </div>
+    <div class="rules-grid">
+      <div class="rule-chip"><b>120 sec</b>on the clock</div>
+      <div class="rule-chip"><b>15 energy</b>action points</div>
+      <div class="rule-chip"><b>1 arrest</b>no second chance</div>
+    </div>
+    <button id="btn-start" class="btn-img" aria-label="Start investigation">
+      <img id="img-start" alt="" draggable="false">
+      <span class="btn-label">Start<br>Investigation</span>
+    </button>
+    <p style="font-size:9px; letter-spacing:.3em; color:var(--dim); text-transform:uppercase; margin-top:14px;">Heads up: every game picks a new culprit</p>
+  </div>
+</section>
+
+<!-- ============ GAME BOARD ============ -->
+<section id="screen-game" class="screen bg-cover hidden">
+  <div class="board-shade"></div>
+
+  <header id="hud">
+    <div class="hud-id">
+      <span class="t1">Case N°8 · 1d</span>
+      <span class="t2">Evidence Board</span>
+    </div>
+    <div class="hud-stat" id="stat-time">
+      <img id="ico-timer" alt="timer" draggable="false">
+      <div><div class="lab">Time</div><div class="val" id="v-time">2:00</div></div>
+    </div>
+    <div class="hud-stat" id="stat-energy">
+      <img id="ico-energy" alt="energy" draggable="false">
+      <div><div class="lab">Energy</div><div class="val" id="v-energy">15</div></div>
+    </div>
+    <div id="hud-status">Status: Investigating</div>
+    <div class="hud-actions">
+      <button class="dock-btn" id="btn-folder">
+        <img id="img-folder" alt="" draggable="false">
+        <span class="cap">Clue File<br>−1 energy</span>
+      </button>
+      <button class="dock-btn" id="btn-warrant">
+        <img id="img-warrant" alt="" draggable="false">
+        <span class="cap" id="cap-warrant">Arrest<br>Warrant</span>
+      </button>
+      <button class="dock-btn" id="btn-mute" aria-label="Toggle sound">
+        <i data-lucide="volume-2" id="ico-sound-on"></i>
+        <i data-lucide="volume-x" id="ico-sound-off" class="hidden"></i>
+        <span class="cap">Sound</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="board-wrap">
+    <main>
+      <div id="cards-grid"></div>
+    </main>
+    <aside id="evidence-panel">
+      <div class="ev-head">
+        <span class="t">Evidence Slots</span>
+        <span class="c" id="ev-count">0 notes</span>
+      </div>
+      <p class="ev-hint">Tap a sticky note to cross-check it against the board: red = contradicts the clue, green = still a person of interest.</p>
+      <div id="slots"></div>
+    </aside>
+  </div>
+
+  <div id="accuse-banner" class="hidden">Arrest mode — tap the culprit to serve the warrant · tap the warrant again to cancel</div>
+</section>
+
+<!-- ============ SUSPECT DOSSIER MODAL ============ -->
+<div id="modal-suspect" class="modal-veil hidden">
+  <div class="dossier" role="dialog" aria-modal="true">
+    <div class="dossier-head">
+      <div>
+        <h3 id="m-name">—</h3>
+        <div class="sub" id="m-file">Suspect file</div>
+      </div>
+      <button class="x-btn" id="m-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="dossier-body">
+      <div class="dossier-photo"><img id="m-photo" alt="" draggable="false"><div class="cur"></div></div>
+      <div>
+        <div class="intel-list" id="m-intel"></div>
+        <div class="intel-flash" id="m-flash"></div>
+      </div>
+    </div>
+    <div class="dossier-actions">
+      <button class="act-btn red" id="m-exclude">Exclude<small>free · 0 energy</small></button>
+      <button class="act-btn" id="m-interrogate">Interrogate<small>−2 energy · reveal intel</small></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ END MODAL (WIN / LOSS) ============ -->
+<div id="modal-end" class="modal-veil hidden">
+  <div class="end-box" id="end-box">
+    <div class="end-stamp" id="end-stamp">CASE SOLVED</div>
+    <p class="end-msg" id="end-msg"></p>
+    <div class="culprit-reveal"><img id="end-photo" alt="" draggable="false"></div>
+    <div class="culprit-name" id="end-name"></div>
+    <div class="stats-grid" id="end-stats"></div>
+    <button id="btn-restart" class="btn-img" aria-label="Restart case">
+      <img id="img-restart" alt="" draggable="false">
+      <span class="btn-label">Reopen Case</span>
+    </button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================================
+   NOIR: THE EIGHT SUSPECTS — Spotlight 8 · Lesson 1d
+   Appearance, Personality & Interpersonal Relations deduction game
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * 1. ASSET MANIFEST — the "uploaded file" of hosting links is parsed *
+ *    at boot: each "Key: [url]" line is extracted with a regex, then *
+ *    resolved through the DIRECT table into a hot-linkable i.ibb.co  *
+ *    URL. No local relative fallback paths are ever used.            *
+ * ------------------------------------------------------------------ */
+const RAW_MANIFEST = `
+Фон меню: [https://ibb.co/PZN2wYS8]
+Фон доски: [https://ibb.co/7xMFsPfT]
+Рубашка карточки: [https://ibb.co/0RRKtBkL]
+Папка улик: [https://ibb.co/s9dj11LB]
+Стикер: [https://ibb.co/HDKCKNYc]
+Ордер: [https://ibb.co/zDTf364]
+Иконка таймера: [https://ibb.co/kVHnF3rp]
+Иконка энергии: [https://ibb.co/BVzkkCYZ]
+Кнопка Старт: [https://ibb.co/pj9L9Z6R]
+Кнопка Рестарт: [https://ibb.co/TBxQMbtV]
+Подозреваемый 1 (Дэвид): [https://ibb.co/G4jkPJss]
+Подозреваемый 2 (Сара): [https://ibb.co/mrh724yP]
+Подозреваемый 3 (Сью): [https://ibb.co/234xbvrz]
+Подозреваемый 4 (Салли): [https://ibb.co/jPH99gzC]
+Подозреваемый 5 (Пожилой): [https://ibb.co/cSmXpr7D]
+Подозреваемый 6 (Ребел): [https://ibb.co/9Hd17pmj]
+Подозреваемый 7 (Аналитик): [https://ibb.co/wZLxZc3G]
+Подозреваемый 8 (Актриса): [https://ibb.co/DHHgFwbc]
+`;
+
+/* ibb.co gallery page -> direct image file (resolved once, offline-safe) */
+const DIRECT = {
+  'https://ibb.co/PZN2wYS8': 'https://i.ibb.co/Z6VQWJZC/Max-a-Generate-a-highly-de-4.png',
+  'https://ibb.co/7xMFsPfT': 'https://i.ibb.co/vCy80pFr/Max-a-Use-the-style-of-ori.png',
+  'https://ibb.co/0RRKtBkL': 'https://i.ibb.co/zTTFJ81g/Max-a-Use-the-style-of-the.png',
+  'https://ibb.co/s9dj11LB': 'https://i.ibb.co/HTf7PPmJ/21.png',
+  'https://ibb.co/HDKCKNYc': 'https://i.ibb.co/jv8z8VGC/Max-a-Use-the-style-of-the-1.png',
+  'https://ibb.co/zDTf364':  'https://i.ibb.co/9SkYxZr/Max-a-Use-the-style-of-the-2.png',
+  'https://ibb.co/kVHnF3rp': 'https://i.ibb.co/Kc0ZHNQY/Max-a-Use-the-style-of-the-3.png',
+  'https://ibb.co/BVzkkCYZ': 'https://i.ibb.co/SXsSS3Zn/Max-a-Use-the-style-of-the-4.png',
+  'https://ibb.co/pj9L9Z6R': 'https://i.ibb.co/Sw9390Dd/Max-a-Use-the-style-of-the.png',
+  'https://ibb.co/TBxQMbtV': 'https://i.ibb.co/MDxzkG7Y/212.png',
+  'https://ibb.co/G4jkPJss': 'https://i.ibb.co/YFG8jWDD/Max-a-A-professional-chara.png',
+  'https://ibb.co/mrh724yP': 'https://i.ibb.co/1YRxPTX4/Max-a-Use-the-style-of-the.png',
+  'https://ibb.co/234xbvrz': 'https://i.ibb.co/d4YFhPvN/Max-a-Use-the-style-of-the-1.png',
+  'https://ibb.co/jPH99gzC': 'https://i.ibb.co/21500gSz/Max-a-Use-the-style-of-the-2.png',
+  'https://ibb.co/cSmXpr7D': 'https://i.ibb.co/q3ZF4rPk/Max-a-Use-the-style-of-the-3.png',
+  'https://ibb.co/9Hd17pmj': 'https://i.ibb.co/m5P23Rr7/Max-a-Use-the-style-of-the-4.png',
+  'https://ibb.co/wZLxZc3G': 'https://i.ibb.co/7xz6xk8M/Max-a-Use-the-style-of-the-5.png',
+  'https://ibb.co/DHHgFwbc': 'https://i.ibb.co/q33F8mnq/Max-a-Use-the-style-of-the-5.png'
+};
+
+/* manifest line keys -> internal asset variables */
+const KEYMAP = [
+  [/фон меню/i,        'bgMenu'],
+  [/фон доски/i,       'bgBoard'],
+  [/рубашка/i,         'cardBack'],
+  [/папка улик/i,      'folder'],
+  [/стикер/i,          'note'],
+  [/ордер/i,           'warrant'],
+  [/иконка таймера/i,  'icoTimer'],
+  [/иконка энергии/i,  'icoEnergy'],
+  [/кнопка старт/i,    'btnStart'],
+  [/кнопка рестарт/i,  'btnRestart'],
+  [/подозреваемый 1/i, 's1'], [/подозреваемый 2/i, 's2'],
+  [/подозреваемый 3/i, 's3'], [/подозреваемый 4/i, 's4'],
+  [/подозреваемый 5/i, 's5'], [/подозреваемый 6/i, 's6'],
+  [/подозреваемый 7/i, 's7'], [/подозреваемый 8/i, 's8']
+];
+
+const ASSETS = {}; // parsed asset table: varName -> direct URL
+function parseManifest(text){
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let parsed = 0;
+  for (const line of lines){
+    const m = line.match(/\[(https?:\/\/[^\]]+)\]/);
+    if (!m) continue;
+    const page = m[1];
+    for (const [rx, key] of KEYMAP){
+      if (rx.test(line)){ ASSETS[key] = DIRECT[page] || page; parsed++; break; }
+    }
+  }
+  return parsed;
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. SUSPECT DATABASE — exact Lesson 1d schema.                      *
+ *    ageV / slimV / hairV are ordinal scales used ONLY to produce    *
+ *    pedagogically valid comparative clues (younger/older,           *
+ *    slimmer/plumper, shorter/longer).                               *
+ * ------------------------------------------------------------------ */
+const SUSPECTS = [
+  { id:0, key:'s1', name:'David Beckham', age:'thirties', build:'strong, muscular', hair:'blond, very short', eyes:'almond-shaped green', personality:'humorous', style:'unusual',  ageV:3, slimV:5,  hairV:1 },
+  { id:1, key:'s2', name:'Sarah',         age:'twenties', build:'slim',             hair:'dark brown, wavy',  eyes:'dark',                personality:'serious',  style:'corporate', ageV:2, slimV:7,  hairV:6 },
+  { id:2, key:'s3', name:'Sue',           age:'teenager', build:'skinny',           hair:'ginger, short',     eyes:'blue',                personality:'cheerful', style:'casual',    ageV:1, slimV:8,  hairV:3 },
+  { id:3, key:'s4', name:'Sally',         age:'twenties', build:'the slimmest',     hair:'blonde, straight',  eyes:'green',               personality:'stubborn', style:'sporty',    ageV:2, slimV:10, hairV:8 },
+  { id:4, key:'s5', name:'The Elder',     age:'sixties',  build:'plump, stocky',    hair:'grey, short',       eyes:'dark',                personality:'friendly', style:'classic',   ageV:5, slimV:2,  hairV:2 },
+  { id:5, key:'s6', name:'The Rebel',     age:'twenties', build:'overweight, plump',hair:'ginger, curly',     eyes:'blue',                personality:'lazy',     style:'eccentric', ageV:2, slimV:1,  hairV:5 },
+  { id:6, key:'s7', name:'The Analyst',   age:'forties',  build:'medium',           hair:'dark, neat bun',    eyes:'grey',                personality:'bossy',    style:'formal',    ageV:4, slimV:6,  hairV:7 },
+  { id:7, key:'s8', name:'The Actress',   age:'thirties', build:'thin',             hair:'fair, straight',    eyes:'blue',                personality:'friendly', style:'glamorous', ageV:3, slimV:9,  hairV:9 }
+];
+const agePhrase = s => s.age === 'teenager' ? 'a teenager' : `in their ${s.age}`;
+
+/* ------------------------------------------------------------------ *
+ * 3. GAME STATE — strict phase machine:                              *
+ *    boot -> menu -> playing <-> (accuse sub-mode) -> over           *
+ * ------------------------------------------------------------------ */
+const START_ENERGY = 15, START_TIME = 120;
+const state = {
+  phase:'boot',          // 'boot' | 'menu' | 'playing' | 'over'
+  accuse:false,          // accusation sub-mode (board frozen for actions)
+  culprit:null,
+  energy:START_ENERGY,
+  time:START_TIME,
+  timerId:null,
+  excluded:new Set(),    // suspect ids flipped face-down
+  intel:{},              // id -> Set of revealed feature keys
+  usedClues:new Set(),   // dedupe keys for generated clues
+  clues:[],              // clue objects (with .eliminates closures)
+  activeNote:null,       // currently cross-checked note index
+  modalSuspect:null,     // id open in dossier modal
+  stats:{ clues:0, inter:0, excl:0 },
+  sound:true
+};
+
+/* ---------------- tiny DOM helpers ---------------- */
+const $ = id => document.getElementById(id);
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+/* safe icon render: never let a CDN hiccup interrupt the state machine */
+const icons = () => { try { if (window.lucide) lucide.createIcons(); } catch(_){} };
+/* unified tap: pointerdown covers click + touch on iOS/Android */
+const onTap = (node, fn) => node.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(e); });
+
+/* ---------------- procedural noir SFX (WebAudio) ---------------- */
+const AudioSys = {
+  ctx:null,
+  ensure(){
+    if (!this.ctx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) this.ctx = new AC(); }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, t=0.08, type='square', g=0.05, when=0){
+    if (!state.sound || !this.ctx) return;
+    const c = this.ctx, o = c.createOscillator(), v = c.createGain();
+    o.type = type; o.frequency.value = f;
+    v.gain.setValueAtTime(0, c.currentTime + when);
+    v.gain.linearRampToValueAtTime(g, c.currentTime + when + 0.012);
+    v.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + when + t);
+    o.connect(v).connect(c.destination); o.start(c.currentTime + when); o.stop(c.currentTime + when + t + 0.05);
+  },
+  noise(t=0.12, g=0.05){
+    if (!state.sound || !this.ctx) return;
+    const c = this.ctx, len = c.sampleRate * t, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * (1 - i/len);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const v = c.createGain(); v.gain.value = g;
+    src.connect(v).connect(c.destination); src.start();
+  }
+};
+const sfx = k => {
+  AudioSys.ensure();
+  if (!AudioSys.ctx) return;
+  switch(k){
+    case 'click': AudioSys.tone(660, .06, 'square', .04); break;
+    case 'flip':  AudioSys.noise(.16, .06); AudioSys.tone(220, .1, 'triangle', .04); break;
+    case 'paper': AudioSys.noise(.22, .08); break;
+    case 'stamp': AudioSys.tone(120, .16, 'sawtooth', .08); AudioSys.noise(.1, .05); break;
+    case 'error': AudioSys.tone(140, .12, 'square', .06); AudioSys.tone(110, .14, 'square', .06, .12); break;
+    case 'intel': AudioSys.tone(520, .08, 'triangle', .05); AudioSys.tone(780, .1, 'triangle', .05, .09); break;
+    case 'win':   [440, 554, 659, 880].forEach((f,i)=>AudioSys.tone(f, .18, 'triangle', .06, i*.13)); break;
+    case 'lose':  [330, 262, 196, 131].forEach((f,i)=>AudioSys.tone(f, .22, 'sawtooth', .05, i*.14)); break;
+  }
+};
+
+/* ---------------- toast ---------------- */
+let toastT = null;
+function toast(msg, ok=false){
+  const t = $('toast');
+  t.textContent = msg; t.classList.toggle('ok', ok); t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. BOOT SEQUENCE — parse manifest, preload every image, progress   *
+ *    bar, then phase transition boot -> menu.                        *
+ * ------------------------------------------------------------------ */
+function preload(url){
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => res({ url, ok:true });
+    img.onerror = () => res({ url, ok:false });
+    img.src = url;
+  });
+}
+async function boot(){
+  const found = parseManifest(RAW_MANIFEST);
+  $('boot-log').textContent = `MANIFEST PARSED · ${found}/18 ASSETS MAPPED`;
+  const urls = Object.values(ASSETS);
+  let done = 0;
+  await Promise.all(urls.map(u => preload(u).then(() => {
+    done++;
+    $('boot-fill').style.width = Math.round(done/urls.length*100) + '%';
+    $('boot-log').textContent = `DECRYPTING EVIDENCE PHOTO ${done}/${urls.length}`;
+  })));
+  $('boot-log').textContent = 'CASE FILE READY';
+  wireStaticAssets();
+  await new Promise(r => setTimeout(r, 500));
+  // --- STATE TRANSITION: boot -> menu ---
+  state.phase = 'menu';
+  $('screen-boot').classList.add('hidden');
+  $('screen-menu').classList.remove('hidden');
+  icons();
+}
+
+/* map parsed URLs into the live DOM (backgrounds, icons, buttons) */
+function wireStaticAssets(){
+  $('screen-menu').style.backgroundImage = `url('${ASSETS.bgMenu}')`;
+  $('screen-game').style.backgroundImage = `url('${ASSETS.bgBoard}')`;
+  $('img-start').src = ASSETS.btnStart;
+  $('img-restart').src = ASSETS.btnRestart;
+  $('img-folder').src = ASSETS.folder;
+  $('img-warrant').src = ASSETS.warrant;
+  $('ico-timer').src = ASSETS.icoTimer;
+  $('ico-energy').src = ASSETS.icoEnergy;
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. GAME LIFECYCLE                                                  *
+ * ------------------------------------------------------------------ */
+function startGame(){
+  // --- clear any previous run (timers, filters, modals) ---
+  stopTimer();
+  Object.assign(state, {
+    accuse:false, energy:START_ENERGY, time:START_TIME,
+    activeNote:null, modalSuspect:null,
+    stats:{ clues:0, inter:0, excl:0 }
+  });
+  state.excluded = new Set();
+  state.intel = {}; SUSPECTS.forEach(s => state.intel[s.id] = new Set());
+  state.usedClues = new Set();
+  state.clues = [];
+  state.culprit = SUSPECTS[Math.floor(Math.random()*SUSPECTS.length)]; // secret culprit
+  document.body.classList.remove('accuse');
+  $('btn-warrant').classList.remove('armed');
+  $('cap-warrant').innerHTML = 'Arrest<br>Warrant';
+  $('accuse-banner').classList.add('hidden');
+  $('modal-end').classList.add('hidden');
+  $('modal-suspect').classList.add('hidden');
+
+  buildCards();
+  renderSlots();
+  updateHUD();
+  // --- STATE TRANSITION: menu/over -> playing ---
+  state.phase = 'playing';
+  $('screen-menu').classList.add('hidden');
+  $('screen-game').classList.remove('hidden');
+  startTimer();
+  toast('CASE OPENED — GOOD LUCK, DETECTIVE', true);
+}
+
+function startTimer(){
+  stopTimer();
+  state.timerId = setInterval(() => {
+    if (state.phase !== 'playing') return;
+    state.time--;
+    updateHUD();
+    if (state.time === 10) sfx('error');
+    if (state.time <= 0) endGame('time'); // --- LOSS: clock hit zero ---
+  }, 1000);
+}
+function stopTimer(){ if (state.timerId){ clearInterval(state.timerId); state.timerId = null; } }
+
+function updateHUD(){
+  const m = Math.floor(Math.max(0,state.time)/60), s = Math.max(0,state.time)%60;
+  $('v-time').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  $('v-energy').textContent = state.energy;
+  $('stat-time').classList.toggle('danger', state.time <= 15 && state.phase === 'playing');
+  $('stat-energy').classList.toggle('danger', state.energy <= 3 && state.phase === 'playing');
+  $('hud-status').textContent = state.accuse ? 'Status: Arrest Mode' : 'Status: Investigating';
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. ENERGY ECONOMY — every paid action routes through spend().      *
+ *    Energy reaching 0 = case collapse (LOSS).                       *
+ * ------------------------------------------------------------------ */
+function spend(cost){
+  if (state.energy < cost){ sfx('error'); toast('NOT ENOUGH ENERGY'); return false; }
+  state.energy -= cost;
+  updateHUD();
+  return true;
+}
+function checkEnergyCollapse(){
+  if (state.phase === 'playing' && state.energy <= 0){
+    setTimeout(() => endGame('energy'), 950); // let the last animation land
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. SUSPECT CARD RENDERING + 3D FLIP                                *
+ * ------------------------------------------------------------------ */
+function buildCards(){
+  const grid = $('cards-grid');
+  grid.innerHTML = '';
+  for (const s of SUSPECTS){
+    const card = el('div', 'suspect-card');
+    card.dataset.id = s.id;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img class="portrait" src="${ASSETS[s.key]}" alt="${s.name}" draggable="false">
+          <div class="shade"></div>
+          <div class="file-no">File N°${s.id+1}</div>
+          <div class="intel-row"></div>
+          <div class="name-plate">${s.name}</div>
+        </div>
+        <div class="card-face card-back">
+          <img src="${ASSETS.cardBack}" alt="excluded" draggable="false">
+          <div class="stamp">EXCLUDED</div>
+        </div>
+      </div>
+      <div class="card-veil"><span class="cc-mark"></span></div>`;
+    card.querySelectorAll('img').forEach(im => im.addEventListener('error', () => im.closest('.card-face')?.classList.add('img-err'), { once:true }));
+    onTap(card, () => onCardTap(s.id));
+    grid.appendChild(card);
+  }
+}
+const cardNode = id => document.querySelector(`.suspect-card[data-id="${id}"]`);
+
+function refreshCardIntel(id){
+  const row = cardNode(id).querySelector('.intel-row');
+  const feats = [...state.intel[id]];
+  row.innerHTML = '';
+  feats.slice(0,3).forEach(f => row.appendChild(el('span','intel-chip', `${f}: ${shortFeat(SUSPECTS[id], f)}`)));
+  if (feats.length > 3) row.appendChild(el('span','intel-chip', `+${feats.length-3} more`));
+}
+function shortFeat(s, f){
+  if (f === 'age') return agePhrase(s);
+  return s[f];
+}
+
+/* ------------------------------------------------------------------ *
+ * 8. CARD TAP ROUTER — behaviour depends on phase + accuse sub-mode  *
+ * ------------------------------------------------------------------ */
+function onCardTap(id){
+  if (state.phase !== 'playing') return;                 // board frozen after game over
+  if (state.accuse){                                     // --- accusation mode ---
+    if (state.excluded.has(id)){ sfx('error'); toast('THAT SUSPECT WAS EXCLUDED'); return; }
+    accuse(id);
+    return;
+  }
+  if (state.excluded.has(id)){ reinstate(id); return; }  // free un-flip
+  openDossier(id);                                       // normal: status overlay
+}
+
+/* ------------------------------------------------------------------ *
+ * 9. DOSSIER MODAL (status overlay: Exclude / Interrogate)           *
+ * ------------------------------------------------------------------ */
+function openDossier(id){
+  state.modalSuspect = id;
+  const s = SUSPECTS[id];
+  $('m-name').textContent = s.name;
+  $('m-file').textContent = `Suspect file N°${id+1} · Energy left: ${state.energy}`;
+  $('m-photo').src = ASSETS[s.key];
+  $('m-flash').textContent = '';
+  $('m-interrogate').disabled = state.energy < 2 || state.intel[id].size >= 6;
+  renderModalIntel(id);
+  $('modal-suspect').classList.remove('hidden');
+  icons();
+  sfx('click');
+}
+function closeDossier(){ state.modalSuspect = null; $('modal-suspect').classList.add('hidden'); }
+
+function renderModalIntel(id){
+  const box = $('m-intel'); box.innerHTML = '';
+  const feats = [...state.intel[id]];
+  if (!feats.length){
+    box.appendChild(el('div','intel-none','No verified intel yet.<br>Interrogate this suspect to reveal one hidden feature (−2 energy).'));
+    return;
+  }
+  const labels = { age:'Age', build:'Build', hair:'Hair', eyes:'Eyes', personality:'Personality', style:'Style' };
+  feats.forEach(f => box.appendChild(el('div','intel-item', `<b>${labels[f]}</b><span>${shortFeat(SUSPECTS[id], f)}</span>`)));
+}
+
+/* EXCLUDE — free action: close overlay, 3D flip to card back + stamp */
+function excludeCurrent(){
+  const id = state.modalSuspect;
+  if (id == null) return;
+  closeDossier();
+  setTimeout(() => {
+    state.excluded.add(id);
+    state.stats.excl++;
+    cardNode(id).classList.add('excluded');
+    sfx('stamp');
+    checkEnergyCollapse();
+  }, 220);
+}
+/* REINSTATE — taping a face-down card flips it back (free) */
+function reinstate(id){
+  state.excluded.delete(id);
+  cardNode(id).classList.remove('excluded');
+  sfx('flip');
+}
+
+/* INTERROGATE — costs 2 energy, reveals one random hidden feature */
+function interrogateCurrent(){
+  const id = state.modalSuspect;
+  if (id == null || state.phase !== 'playing') return;
+  const s = SUSPECTS[id];
+  const hidden = ['age','build','hair','eyes','personality','style'].filter(f => !state.intel[id].has(f));
+  if (!hidden.length){ toast('NOTHING MORE TO LEARN HERE'); return; }
+  if (!spend(2)) return;
+  state.stats.inter++;
+  const feat = hidden[Math.floor(Math.random()*hidden.length)];
+  state.intel[id].add(feat);
+  renderModalIntel(id);
+  refreshCardIntel(id);
+  const labels = { age:'Age', build:'Build', hair:'Hair', eyes:'Eyes', personality:'Personality', style:'Style' };
+  $('m-flash').textContent = `Intel acquired — ${labels[feat]}: ${shortFeat(s, feat)}`;
+  $('m-file').textContent = `Suspect file N°${id+1} · Energy left: ${state.energy}`;
+  $('m-interrogate').disabled = state.energy < 2 || state.intel[id].size >= 6;
+  sfx('intel');
+  checkEnergyCollapse();
+}
+
+/* ------------------------------------------------------------------ *
+ * 10. CLUE GENERATION — Lesson 1d templates only:                    *
+ *     direct characteristics + comparatives vs. other suspects.      *
+ *     Each clue also carries an eliminates(suspect) test powering    *
+ *     the CROSS-CHECK (auto Guess-Who elimination highlight).        *
+ * ------------------------------------------------------------------ */
+function buildCluePool(c){
+  const pool = [];
+  const add = (key, text, eliminates) => pool.push({ key, text, eliminates });
+  // — direct characteristic clues —
+  add('hair', `The witness says the suspect has ${c.hair} hair.`, s => s.hair !== c.hair);
+  add('eyes', `The camera footage shows a suspect with ${c.eyes} eyes.`, s => s.eyes !== c.eyes);
+  add('pers', `Psychological profile matches a ${c.personality} person.`, s => s.personality !== c.personality);
+  add('age',  `Hotel records confirm the suspect is ${agePhrase(c)}.`, s => s.age !== c.age);
+  const art = w => (/^(a|e|i|o|u)/i.test(w) ? 'an' : 'a');
+  const buildPh = c.build.startsWith('the ') ? c.build : `${art(c.build)} ${c.build}`;
+  add('build',`The doorman describes ${buildPh} build.`, s => s.build !== c.build);
+  add('style',`A torn label points to ${art(c.style)} ${c.style} style of dress.`, s => s.style !== c.style);
+  // — comparative clues vs every other suspect (ties skipped) —
+  for (const o of SUSPECTS){
+    if (o.id === c.id) continue;
+    if (o.ageV !== c.ageV){
+      const word = c.ageV > o.ageV ? 'older' : 'younger';
+      add(`age>${o.id}`, `The suspect is ${word} than ${o.name}.`,
+          s => !(word === 'older' ? s.ageV > o.ageV : s.ageV < o.ageV));
+    }
+    if (o.slimV !== c.slimV){
+      const word = c.slimV > o.slimV ? 'slimmer' : 'plumper';
+      add(`slim>${o.id}`, `The suspect is ${word} than ${o.name}.`,
+          s => !(word === 'slimmer' ? s.slimV > o.slimV : s.slimV < o.slimV));
+    }
+    if (o.hairV !== c.hairV){
+      const word = c.hairV > o.hairV ? 'longer' : 'shorter';
+      add(`hair>${o.id}`, `The suspect has ${word} hair than ${o.name}.`,
+          s => !(word === 'longer' ? s.hairV > o.hairV : s.hairV < o.hairV));
+    }
+  }
+  return pool;
+}
+
+/* CLUE FOLDER — costs 1 energy; blocked in accuse mode & on 0 energy */
+function drawClue(){
+  if (state.phase !== 'playing') return;
+  if (state.accuse){ sfx('error'); toast('CANCEL THE WARRANT FIRST'); return; } // board frozen in accuse mode
+  if (!spend(1)) return;
+  state.stats.clues++;
+  const pool = buildCluePool(state.culprit).filter(cl => !state.usedClues.has(cl.key));
+  let clue;
+  if (!pool.length){
+    clue = { key:'meta'+state.clues.length, text:'No new leads. Cross-check the notes you already have.', eliminates:null };
+  } else {
+    clue = pool[Math.floor(Math.random()*pool.length)];
+  }
+  state.usedClues.add(clue.key);
+  state.clues.push(clue);
+  renderSlots();
+  sfx('paper');
+  checkEnergyCollapse();
+}
+
+/* EVIDENCE SLOTS — sticky notes + dashed empty placeholders */
+function renderSlots(){
+  const box = $('slots');
+  box.innerHTML = '';
+  state.clues.forEach((cl, i) => {
+    const note = el('button', 'note' + (state.activeNote === i ? ' active':''));
+    note.style.backgroundImage = `url('${ASSETS.note}')`;
+    note.style.setProperty('--tilt', `${(i%2 ? -1 : 1) * (1 + (i*37)%3)}deg`);
+    note.style.transform = `rotate(var(--tilt))`;
+    note.innerHTML = `<span class="pin"></span><p>${cl.text}</p>`;
+    onTap(note, () => crossCheck(i));
+    box.appendChild(note);
+  });
+  const placeholders = Math.max(0, Math.min(6, 6 - state.clues.length));
+  for (let i = 0; i < placeholders; i++){
+    box.appendChild(el('div','slot-empty', `Slot ${String(state.clues.length + i + 1).padStart(2,'0')}`));
+  }
+  $('ev-count').textContent = `${state.clues.length} note${state.clues.length === 1 ? '' : 's'}`;
+}
+
+/* CROSS-CHECK — tap note: red = clue eliminates, green = still possible */
+function crossCheck(i){
+  if (state.phase !== 'playing') return;
+  if (state.activeNote === i){ state.activeNote = null; }  // toggle off
+  else state.activeNote = i;
+  const clue = state.clues[state.activeNote];
+  document.querySelectorAll('.suspect-card').forEach(card => {
+    const s = SUSPECTS[+card.dataset.id];
+    card.classList.remove('cc-out','cc-in');
+    const mark = card.querySelector('.cc-mark');
+    if (state.activeNote != null && clue && clue.eliminates){
+      if (clue.eliminates(s)){ card.classList.add('cc-out'); mark.textContent = '✕'; }
+      else { card.classList.add('cc-in'); mark.textContent = 'MATCH'; }
+    } else mark.textContent = '';
+  });
+  sfx('click');
+  renderSlots();
+}
+
+/* ------------------------------------------------------------------ *
+ * 11. ACCUSATION MODE — warrant toggles a board-wide arrest state.   *
+ *     While armed: folder + dossier actions freeze, card taps accuse.*
+ * ------------------------------------------------------------------ */
+function toggleWarrant(){
+  if (state.phase !== 'playing') return;
+  state.accuse = !state.accuse;
+  document.body.classList.toggle('accuse', state.accuse);
+  $('btn-warrant').classList.toggle('armed', state.accuse);
+  $('cap-warrant').innerHTML = state.accuse ? 'Cancel<br>Warrant' : 'Arrest<br>Warrant';
+  $('accuse-banner').classList.toggle('hidden', !state.accuse);
+  if (state.modalSuspect != null) closeDossier();  // freeze overlay actions
+  updateHUD();
+  sfx(state.accuse ? 'stamp' : 'click');
+}
+
+function accuse(id){
+  const s = SUSPECTS[id];
+  sfx('stamp');
+  // --- STATE TRANSITION: playing -> over (win or wrong-accusation loss) ---
+  document.body.classList.remove('accuse');
+  if (id === state.culprit.id) endGame('win', s);
+  else endGame('wrong', s);
+}
+
+/* ------------------------------------------------------------------ *
+ * 12. END STATES — win / wrong / time / energy.                      *
+ *     Always: stop interval, freeze board, reveal culprit, stats.    *
+ * ------------------------------------------------------------------ */
+function endGame(result, accused=null){
+  if (state.phase === 'over') return;
+  state.phase = 'over';
+  stopTimer();
+  state.accuse = false;
+  document.body.classList.remove('accuse');
+  $('accuse-banner').classList.add('hidden');
+  closeDossier();
+
+  const c = state.culprit;
+  const box = $('end-box');
+  const win = result === 'win';
+  box.classList.toggle('end-win', win);
+  box.classList.toggle('end-lose', !win);
+  $('end-stamp').textContent = win ? 'CASE SOLVED' : 'CASE CLOSED';
+
+  const msgs = {
+    win:    `Textbook deduction, detective. <b>${c.name}</b> is behind bars and the portrait is back in the gallery.`,
+    wrong:  `<b>${accused.name}</b> is innocent — a false arrest. The real culprit, <b>${c.name}</b>, slipped away in the confusion.`,
+    time:   `The clock hit zero and the trail went cold. <b>${c.name}</b> vanished into the night fog.`,
+    energy: `Energy depleted — the department pulled the plug. <b>${c.name}</b> walked free.`
+  };
+  $('end-msg').innerHTML = msgs[result];
+  $('end-photo').src = ASSETS[c.key];
+  $('end-name').textContent = `${c.name} · ${c.hair} hair · ${c.eyes} eyes · ${c.personality}`;
+
+  const m = Math.floor(Math.max(0,state.time)/60), s = Math.max(0,state.time)%60;
+  const cells = [
+    [`${m}:${String(s).padStart(2,'0')}`, 'Time left'],
+    [state.energy, 'Energy left'],
+    [state.stats.clues, 'Clues pulled'],
+    [state.stats.inter, 'Interrogations'],
+    [state.stats.excl, 'Excluded']
+  ];
+  $('end-stats').innerHTML = '';
+  cells.forEach(([v,k]) => $('end-stats').appendChild(el('div','stat-cell', `<div class="v">${v}</div><div class="k">${k}</div>`)));
+
+  setTimeout(() => {
+    $('modal-end').classList.remove('hidden');
+    icons();
+    sfx(win ? 'win' : 'lose');
+  }, 650);
+}
+
+/* ------------------------------------------------------------------ *
+ * 13. WIRING — all controls use pointerdown (iOS/Android safe)       *
+ * ------------------------------------------------------------------ */
+onTap($('btn-start'),   () => { sfx('click'); startGame(); });
+onTap($('btn-restart'), () => { sfx('click'); startGame(); });
+onTap($('btn-folder'),  drawClue);
+onTap($('btn-warrant'), toggleWarrant);
+onTap($('m-close'),     () => { sfx('click'); closeDossier(); });
+onTap($('m-exclude'),   excludeCurrent);
+onTap($('m-interrogate'), interrogateCurrent);
+onTap($('btn-mute'), () => {
+  state.sound = !state.sound;
+  $('ico-sound-on').classList.toggle('hidden', !state.sound);
+  $('ico-sound-off').classList.toggle('hidden', state.sound);
+  if (state.sound) sfx('click');
+});
+/* tap on dark veil closes the dossier (not while accusing — it is already closed) */
+$('modal-suspect').addEventListener('pointerdown', e => { if (e.target === $('modal-suspect')) closeDossier(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') closeDossier(); });
+/* first gesture unlocks the AudioContext on iOS */
+window.addEventListener('pointerdown', () => AudioSys.ensure(), { once:true });
+
+/* ---------------- LIFTOFF ---------------- */
+boot();
+</script>
+</body>
+</html>
